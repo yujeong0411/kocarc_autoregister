@@ -1249,7 +1249,7 @@
     {
       "key": "common",
       "title": "1.공통영역",
-      "file": "new_case3.html",
+      "file": "new_case1.html",
       "action": "patient_upOk.asp",
       "enctype": "",
       "fields": [
@@ -1509,7 +1509,7 @@
           "readonly": false,
           "hidden": false,
           "system": true,
-          "value": "1983",
+          "value": "1902",
           "widget": "select",
           "suffix": "년",
           "options": [
@@ -2039,7 +2039,7 @@
           "readonly": false,
           "hidden": false,
           "system": true,
-          "value": "03",
+          "value": "02",
           "widget": "select",
           "suffix": "월",
           "options": [
@@ -2109,7 +2109,7 @@
           "readonly": false,
           "hidden": false,
           "system": true,
-          "value": "02",
+          "value": "05",
           "widget": "select",
           "suffix": "일 /",
           "options": [
@@ -2319,7 +2319,7 @@
           "readonly": false,
           "hidden": false,
           "system": true,
-          "value": "05",
+          "value": "02",
           "widget": "time_hour",
           "suffix": "시",
           "options": [
@@ -2437,7 +2437,7 @@
           "readonly": false,
           "hidden": false,
           "system": true,
-          "value": "02",
+          "value": "05",
           "widget": "time_min",
           "suffix": "분",
           "options": [
@@ -2804,7 +2804,11 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": true,
+          "tree": {
+            "1": "ER_CPR1_N",
+            "2": "ER_CPR1_Y_20"
+          }
         },
         {
           "name": "ER_CPR1_N",
@@ -2834,7 +2838,8 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "ER_CPR1_Y_20",
@@ -2860,7 +2865,8 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "ER_CPR2",
@@ -2886,7 +2892,10 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": true,
+          "tree": {
+            "2": "ER_CPR2_Y"
+          }
         },
         {
           "name": "ER_CPR2_Y",
@@ -2916,7 +2925,8 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "ER_CPR_STOP_DATE",
@@ -4137,7 +4147,11 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": true,
+          "tree": {
+            "1": "ER_CPR_RESULT_LIVE",
+            "3": "ER_CPR_RESULT_DIE"
+          }
         },
         {
           "name": "ER_CPR_RESULT_LIVE",
@@ -4167,7 +4181,8 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "ER_CPR_RESULT_DIE",
@@ -4193,7 +4208,8 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "ER_DIE_DATE",
@@ -8887,7 +8903,7 @@
           "choices": [
             {
               "value": "",
-              "label": "선택변수 Last data updated: 2026-06-18 16:30:57 by 강남세브란스"
+              "label": "선택변수 Last data updated: 2026-07-01 13:38:55 by 강남세브란스"
             }
           ],
           "region": "optional",
@@ -8915,7 +8931,7 @@
     {
       "key": "prevent",
       "title": "2.예방역학영역",
-      "file": "new_case4.html",
+      "file": "new_case2.html",
       "action": "prevent_addOk.asp",
       "enctype": "",
       "fields": [
@@ -9105,6 +9121,36 @@
           "choices": [],
           "region": "core",
           "user_entry": false
+        },
+        {
+          "name": "PRE_ACT",
+          "type": "radio",
+          "label": "병전상태",
+          "context": "",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "radio",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "1",
+              "label": "정상(CPC 1 or 2)"
+            },
+            {
+              "value": "2",
+              "label": "와상상태(Bed-ridden, CPC 3 or 4)"
+            },
+            {
+              "value": "9",
+              "label": "미상"
+            }
+          ],
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "FHX_CA_F",
@@ -9692,11 +9738,14 @@
             },
             {
               "value": "99",
-              "label": "모름 if 있음 ↓"
+              "label": "모름"
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": true,
+          "tree": {
+            "1": "ALCOHOL_DOSE"
+          }
         },
         {
           "name": "ALCOHOL_DOSE",
@@ -9742,7 +9791,8 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "HTN",
@@ -9768,7 +9818,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 예 ↓"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -9894,7 +9944,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 예 ↓"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -10042,7 +10092,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 예 ↓"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -10396,9 +10446,64 @@
           "user_entry": false
         },
         {
+          "name": "PHX_TEXT",
+          "type": "text",
+          "label": "기저질환 기타 TEXT",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "PRE_CPC",
+          "type": "radio",
+          "label": "심정지 전 CPC",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "radio",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "1",
+              "label": "CPC 1 (뇌기능이 좋음)"
+            },
+            {
+              "value": "2",
+              "label": "CPC 2 (중등도 뇌기능 장애)"
+            },
+            {
+              "value": "3",
+              "label": "CPC 3 (심각한 뇌기능 장애)"
+            },
+            {
+              "value": "4",
+              "label": "CPC 4 (코마 또는 식물인간)"
+            },
+            {
+              "value": "9",
+              "label": "미상"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
           "name": "COMPLETE_YN",
           "type": "checkbox",
-          "label": "심정지 발생 전 1주일 동안 일일 평균 수면시간은?",
+          "label": "심정지 전 CPC",
           "context": "",
           "section": "선택변수",
           "readonly": false,
@@ -10420,7 +10525,7 @@
         {
           "name": "COMPLETE_YN2",
           "type": "checkbox",
-          "label": "심정지 발생 전 1주일 동안 일일 평균 수면시간은?",
+          "label": "심정지 전 CPC",
           "context": "",
           "section": "선택변수",
           "readonly": false,
@@ -10461,8 +10566,8 @@
     {
       "key": "community",
       "title": "3.지역사회영역",
-      "file": "new_case5.html",
-      "action": "community_addOk.asp?G_LOCAL_PAT_ID=00-00000",
+      "file": "new_case3.html",
+      "action": "community_addOk.asp",
       "enctype": "",
       "fields": [
         {
@@ -11285,7 +11390,10 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": true,
+          "tree": {
+            "1": "BYDEFIB_Y"
+          }
         },
         {
           "name": "BYDEFIB_Y",
@@ -11311,7 +11419,8 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "FIRST_ECG",
@@ -11346,6 +11455,36 @@
             {
               "value": "5",
               "label": "Bradycardia"
+            },
+            {
+              "value": "99",
+              "label": "미상"
+            }
+          ],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "WIT_SEX",
+          "type": "radio",
+          "label": "목격자 심폐소생술 최초 시행자 성별",
+          "context": "",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "radio",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "1",
+              "label": "남성"
+            },
+            {
+              "value": "2",
+              "label": "여성"
             },
             {
               "value": "99",
@@ -11591,39 +11730,9 @@
           "user_entry": false
         },
         {
-          "name": "WIT_SEX",
-          "type": "radio",
-          "label": "목격자 심폐소생술 시행자 성별",
-          "context": "",
-          "section": "선택변수",
-          "readonly": false,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "radio",
-          "suffix": "",
-          "options": [],
-          "choices": [
-            {
-              "value": "1",
-              "label": "남성"
-            },
-            {
-              "value": "2",
-              "label": "여성"
-            },
-            {
-              "value": "99",
-              "label": "미상"
-            }
-          ],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
           "name": "WIT_AGE",
           "type": "radio",
-          "label": "목격자 심폐소생술 시행자 나이",
+          "label": "목격자 심폐소생술 최초 시행자 나이",
           "context": "",
           "section": "선택변수",
           "readonly": false,
@@ -12732,7 +12841,7 @@
     {
       "key": "relief",
       "title": "4.구급단계영역",
-      "file": "new_case6.html",
+      "file": "new_case4.html",
       "action": "relief_addOk.asp",
       "enctype": "",
       "fields": [
@@ -14235,15 +14344,15 @@
           "choices": [
             {
               "value": "1",
-              "label": "단일출동 다중출동"
+              "label": "단일출동"
             },
             {
               "value": "2",
-              "label": "펌블런스"
+              "label": "다중출동-펌블런스"
             },
             {
               "value": "3",
-              "label": "구급차"
+              "label": "다중출동-구급차"
             },
             {
               "value": "99",
@@ -14277,7 +14386,7 @@
             },
             {
               "value": "3",
-              "label": "심정지리듬 if 심정지리듬 ↓"
+              "label": "심정지리듬"
             }
           ],
           "region": "core",
@@ -14312,10 +14421,6 @@
             {
               "value": "4",
               "label": "Asystole"
-            },
-            {
-              "value": "5",
-              "label": "Bradycardia"
             },
             {
               "value": "6",
@@ -15255,7 +15360,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행 ↓"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -15711,6 +15816,403 @@
           "user_entry": true
         },
         {
+          "name": "PRE_MECHCPR_DATE",
+          "type": "text",
+          "label": "적용일시",
+          "context": "구급대 기계식 흉부압박 장치 적용",
+          "section": "핵심변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "date",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "PRE_MECHCPR_HOUR",
+          "type": "select",
+          "label": "적용일시",
+          "context": "구급대 기계식 흉부압박 장치 적용",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "time_hour",
+          "suffix": "시",
+          "options": [
+            {
+              "value": "--",
+              "label": "-"
+            },
+            {
+              "value": "00",
+              "label": "00"
+            },
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "02",
+              "label": "02"
+            },
+            {
+              "value": "03",
+              "label": "03"
+            },
+            {
+              "value": "04",
+              "label": "04"
+            },
+            {
+              "value": "05",
+              "label": "05"
+            },
+            {
+              "value": "06",
+              "label": "06"
+            },
+            {
+              "value": "07",
+              "label": "07"
+            },
+            {
+              "value": "08",
+              "label": "08"
+            },
+            {
+              "value": "09",
+              "label": "09"
+            },
+            {
+              "value": "10",
+              "label": "10"
+            },
+            {
+              "value": "11",
+              "label": "11"
+            },
+            {
+              "value": "12",
+              "label": "12"
+            },
+            {
+              "value": "13",
+              "label": "13"
+            },
+            {
+              "value": "14",
+              "label": "14"
+            },
+            {
+              "value": "15",
+              "label": "15"
+            },
+            {
+              "value": "16",
+              "label": "16"
+            },
+            {
+              "value": "17",
+              "label": "17"
+            },
+            {
+              "value": "18",
+              "label": "18"
+            },
+            {
+              "value": "19",
+              "label": "19"
+            },
+            {
+              "value": "20",
+              "label": "20"
+            },
+            {
+              "value": "21",
+              "label": "21"
+            },
+            {
+              "value": "22",
+              "label": "22"
+            },
+            {
+              "value": "23",
+              "label": "23"
+            }
+          ],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "PRE_MECHCPR_MIN",
+          "type": "select",
+          "label": "적용일시",
+          "context": "구급대 기계식 흉부압박 장치 적용",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "time_min",
+          "suffix": "분",
+          "options": [
+            {
+              "value": "XX",
+              "label": "-"
+            },
+            {
+              "value": "00",
+              "label": "00"
+            },
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "02",
+              "label": "02"
+            },
+            {
+              "value": "03",
+              "label": "03"
+            },
+            {
+              "value": "04",
+              "label": "04"
+            },
+            {
+              "value": "05",
+              "label": "05"
+            },
+            {
+              "value": "06",
+              "label": "06"
+            },
+            {
+              "value": "07",
+              "label": "07"
+            },
+            {
+              "value": "08",
+              "label": "08"
+            },
+            {
+              "value": "09",
+              "label": "09"
+            },
+            {
+              "value": "10",
+              "label": "10"
+            },
+            {
+              "value": "11",
+              "label": "11"
+            },
+            {
+              "value": "12",
+              "label": "12"
+            },
+            {
+              "value": "13",
+              "label": "13"
+            },
+            {
+              "value": "14",
+              "label": "14"
+            },
+            {
+              "value": "15",
+              "label": "15"
+            },
+            {
+              "value": "16",
+              "label": "16"
+            },
+            {
+              "value": "17",
+              "label": "17"
+            },
+            {
+              "value": "18",
+              "label": "18"
+            },
+            {
+              "value": "19",
+              "label": "19"
+            },
+            {
+              "value": "20",
+              "label": "20"
+            },
+            {
+              "value": "21",
+              "label": "21"
+            },
+            {
+              "value": "22",
+              "label": "22"
+            },
+            {
+              "value": "23",
+              "label": "23"
+            },
+            {
+              "value": "24",
+              "label": "24"
+            },
+            {
+              "value": "25",
+              "label": "25"
+            },
+            {
+              "value": "26",
+              "label": "26"
+            },
+            {
+              "value": "27",
+              "label": "27"
+            },
+            {
+              "value": "28",
+              "label": "28"
+            },
+            {
+              "value": "29",
+              "label": "29"
+            },
+            {
+              "value": "30",
+              "label": "30"
+            },
+            {
+              "value": "31",
+              "label": "31"
+            },
+            {
+              "value": "32",
+              "label": "32"
+            },
+            {
+              "value": "33",
+              "label": "33"
+            },
+            {
+              "value": "34",
+              "label": "34"
+            },
+            {
+              "value": "35",
+              "label": "35"
+            },
+            {
+              "value": "36",
+              "label": "36"
+            },
+            {
+              "value": "37",
+              "label": "37"
+            },
+            {
+              "value": "38",
+              "label": "38"
+            },
+            {
+              "value": "39",
+              "label": "39"
+            },
+            {
+              "value": "40",
+              "label": "40"
+            },
+            {
+              "value": "41",
+              "label": "41"
+            },
+            {
+              "value": "42",
+              "label": "42"
+            },
+            {
+              "value": "43",
+              "label": "43"
+            },
+            {
+              "value": "44",
+              "label": "44"
+            },
+            {
+              "value": "45",
+              "label": "45"
+            },
+            {
+              "value": "46",
+              "label": "46"
+            },
+            {
+              "value": "47",
+              "label": "47"
+            },
+            {
+              "value": "48",
+              "label": "48"
+            },
+            {
+              "value": "49",
+              "label": "49"
+            },
+            {
+              "value": "50",
+              "label": "50"
+            },
+            {
+              "value": "51",
+              "label": "51"
+            },
+            {
+              "value": "52",
+              "label": "52"
+            },
+            {
+              "value": "53",
+              "label": "53"
+            },
+            {
+              "value": "54",
+              "label": "54"
+            },
+            {
+              "value": "55",
+              "label": "55"
+            },
+            {
+              "value": "56",
+              "label": "56"
+            },
+            {
+              "value": "57",
+              "label": "57"
+            },
+            {
+              "value": "58",
+              "label": "58"
+            },
+            {
+              "value": "59",
+              "label": "59"
+            }
+          ],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
           "name": "PRE_ROSC",
           "type": "radio",
           "label": "병원전 자발순환회복",
@@ -15734,7 +16236,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 회복 ↓"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -16183,7 +16685,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 확보함 ↓"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -16301,7 +16803,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 사용함 ↓"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -16370,6 +16872,57 @@
               "label": "바소프레신"
             }
           ],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "PRE_DRUG_EPI_TOT",
+          "type": "text",
+          "label": "구급대 에피네프린 총 투여 용량",
+          "context": "",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "number",
+          "suffix": "mg",
+          "options": [],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "PRE_DRUG_AMIO_TOT",
+          "type": "text",
+          "label": "구급대 아미오다론 총 투여 용량",
+          "context": "",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "number",
+          "suffix": "mg",
+          "options": [],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "PRE_DRUG_VASO_TOT",
+          "type": "text",
+          "label": "구급대 바소프레신 총 투여 용량",
+          "context": "",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "number",
+          "suffix": "IU",
+          "options": [],
+          "choices": [],
           "region": "core",
           "user_entry": true
         },
@@ -17751,7 +18304,7 @@
     {
       "key": "in_hosp",
       "title": "5.병원단계영역",
-      "file": "new_case7.html",
+      "file": "new_case5.html",
       "action": "in_hosp_addOk.asp",
       "enctype": "",
       "fields": [
@@ -17970,7 +18523,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 회복 ↓"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -18411,7 +18964,7 @@
           "choices": [
             {
               "value": "1",
-              "label": "생존후 등록병원 내원 (정상동율동)"
+              "label": "생존후 등록병원 내원 (ROSC)"
             },
             {
               "value": "2",
@@ -18419,7 +18972,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 심정지리듬 ↓"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -18454,10 +19007,6 @@
             {
               "value": "4",
               "label": "Asystole"
-            },
-            {
-              "value": "5",
-              "label": "Bradycardia"
             }
           ],
           "region": "core",
@@ -19111,7 +19660,7 @@
         {
           "name": "NA",
           "type": "text",
-          "label": "Na-K-Cl (mmol/L)",
+          "label": "Na (mmol/L)",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -19150,7 +19699,7 @@
         {
           "name": "K",
           "type": "text",
-          "label": "Na-K-Cl (mmol/L)",
+          "label": "K (mmol/L)",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -19189,7 +19738,7 @@
         {
           "name": "CL",
           "type": "text",
-          "label": "Na-K-Cl (mmol/L)",
+          "label": "Cl (mmol/L)",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -19423,7 +19972,7 @@
         {
           "name": "ICA_UNIT",
           "type": "select",
-          "label": "Ca (mg/dL)",
+          "label": "iCa",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -19453,7 +20002,7 @@
         {
           "name": "ICA",
           "type": "text",
-          "label": "iCa ( 선택 mmol/L mg/dL )",
+          "label": "iCa",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -19470,7 +20019,7 @@
         {
           "name": "ICA_YN",
           "type": "checkbox",
-          "label": "iCa ( 선택 mmol/L mg/dL )",
+          "label": "iCa",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -19492,8 +20041,8 @@
         {
           "name": "MG_UNIT",
           "type": "select",
-          "label": "응급실 내원 초기 혈액검사",
-          "context": "",
+          "label": "Mg",
+          "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
           "hidden": false,
@@ -19530,7 +20079,7 @@
         {
           "name": "MG",
           "type": "text",
-          "label": "Mg ( 선택 mEq/L mmol/L mg/dL ionized mg )",
+          "label": "Mg",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -19547,7 +20096,7 @@
         {
           "name": "MG_YN",
           "type": "checkbox",
-          "label": "Mg ( 선택 mEq/L mmol/L mg/dL ionized mg )",
+          "label": "Mg",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -19764,8 +20313,8 @@
         {
           "name": "B_EXCESS_UNIT",
           "type": "select",
-          "label": "응급실 내원 초기 혈액검사",
-          "context": "",
+          "label": "Base excess",
+          "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
           "hidden": false,
@@ -19798,7 +20347,7 @@
         {
           "name": "B_EXCESS",
           "type": "text",
-          "label": "Base excess ( 선택 mmol/L mEq/L ml )",
+          "label": "Base excess",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -19815,7 +20364,7 @@
         {
           "name": "B_EXCESS_YN",
           "type": "checkbox",
-          "label": "Base excess ( 선택 mmol/L mEq/L ml )",
+          "label": "Base excess",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -19837,7 +20386,7 @@
         {
           "name": "PT_UNIT",
           "type": "select",
-          "label": "Base excess ( 선택 mmol/L mEq/L ml )",
+          "label": "PT",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -19867,7 +20416,7 @@
         {
           "name": "PT",
           "type": "text",
-          "label": "PT ( 선택 % sec )",
+          "label": "PT",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -19884,7 +20433,7 @@
         {
           "name": "PT_YN",
           "type": "checkbox",
-          "label": "PT ( 선택 % sec )",
+          "label": "PT",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -20138,10 +20687,49 @@
           "user_entry": true
         },
         {
+          "name": "HCO3",
+          "type": "text",
+          "label": "HCO3 (mmol/L)",
+          "context": "응급실 내원 초기 혈액검사",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "number",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "HCO3_YN",
+          "type": "checkbox",
+          "label": "HCO3 (mmol/L)",
+          "context": "응급실 내원 초기 혈액검사",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "",
+              "label": "ND"
+            }
+          ],
+          "region": "core",
+          "user_entry": true
+        },
+        {
           "name": "S100_UNIT",
           "type": "select",
-          "label": "응급실 내원 초기 혈액검사",
-          "context": "",
+          "label": "S-100",
+          "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
           "hidden": false,
@@ -20170,7 +20758,7 @@
         {
           "name": "S100",
           "type": "text",
-          "label": "S-100 ( 선택 ㎍/mL ㎍/L )",
+          "label": "S-100",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -20187,7 +20775,7 @@
         {
           "name": "S100_YN",
           "type": "checkbox",
-          "label": "S-100 ( 선택 ㎍/mL ㎍/L )",
+          "label": "S-100",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -20248,8 +20836,8 @@
         {
           "name": "DIMER_UNIT",
           "type": "select",
-          "label": "응급실 내원 초기 혈액검사",
-          "context": "",
+          "label": "d-dimer",
+          "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
           "hidden": false,
@@ -20290,7 +20878,7 @@
         {
           "name": "DIMER",
           "type": "text",
-          "label": "d-dimer ( 선택 ㎍/mL mg/L ng/L mg/dL mg/L FEU )",
+          "label": "d-dimer",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -20307,7 +20895,7 @@
         {
           "name": "DIMER_YN",
           "type": "checkbox",
-          "label": "d-dimer ( 선택 ㎍/mL mg/L ng/L mg/dL mg/L FEU )",
+          "label": "d-dimer",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -20329,7 +20917,7 @@
         {
           "name": "LACTATE_UNIT",
           "type": "select",
-          "label": "d-dimer ( 선택 ㎍/mL mg/L ng/L mg/dL mg/L FEU )",
+          "label": "Lactate",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -20359,7 +20947,7 @@
         {
           "name": "LACTATE",
           "type": "text",
-          "label": "Lactate ( 선택 mmol/L mg/dL )",
+          "label": "Lactate",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -20376,7 +20964,7 @@
         {
           "name": "LACTATE_YN",
           "type": "checkbox",
-          "label": "Lactate ( 선택 mmol/L mg/dL )",
+          "label": "Lactate",
           "context": "응급실 내원 초기 혈액검사",
           "section": "핵심변수",
           "readonly": false,
@@ -20476,7 +21064,7 @@
         {
           "name": "BICAR_UNIT",
           "type": "select",
-          "label": "Bicarbonate 투여량 ( 선택 mEq A ml )",
+          "label": "Bicarbonate 투여량",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -20510,7 +21098,7 @@
         {
           "name": "BICAR",
           "type": "text",
-          "label": "Bicarbonate 투여량 ( 선택 mEq A ml )",
+          "label": "Bicarbonate 투여량",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -20527,7 +21115,7 @@
         {
           "name": "BICAR_YN",
           "type": "checkbox",
-          "label": "Bicarbonate 투여량 ( 선택 mEq A ml )",
+          "label": "Bicarbonate 투여량",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -20549,7 +21137,7 @@
         {
           "name": "AMIODA_UNIT",
           "type": "select",
-          "label": "Amiodarone 투여량 ( 선택 mg ml ㎍/mL )",
+          "label": "Amiodarone 투여량",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -20583,7 +21171,7 @@
         {
           "name": "AMIODA",
           "type": "text",
-          "label": "Amiodarone 투여량 ( 선택 mg ml ㎍/mL )",
+          "label": "Amiodarone 투여량",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -20600,7 +21188,7 @@
         {
           "name": "AMIODA_YN",
           "type": "checkbox",
-          "label": "Amiodarone 투여량 ( 선택 mg ml ㎍/mL )",
+          "label": "Amiodarone 투여량",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -20677,8 +21265,8 @@
         {
           "name": "STEROID_UNIT",
           "type": "select",
-          "label": "Steroid",
-          "context": "",
+          "label": "투여량",
+          "context": "Steroid",
           "section": "핵심변수",
           "readonly": false,
           "hidden": false,
@@ -20711,7 +21299,7 @@
         {
           "name": "STEROID",
           "type": "text",
-          "label": "투여량 ( 선택 mg V A )",
+          "label": "투여량",
           "context": "Steroid",
           "section": "핵심변수",
           "readonly": false,
@@ -20728,7 +21316,7 @@
         {
           "name": "STEROID_YN",
           "type": "checkbox",
-          "label": "투여량 ( 선택 mg V A )",
+          "label": "투여량",
           "context": "Steroid",
           "section": "핵심변수",
           "readonly": false,
@@ -20750,7 +21338,7 @@
         {
           "name": "LIDOCAINE_UNIT",
           "type": "select",
-          "label": "lidocaine 투여량 ( 선택 mg V )",
+          "label": "lidocaine 투여량",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -20780,7 +21368,7 @@
         {
           "name": "LIDOCAINE",
           "type": "text",
-          "label": "lidocaine 투여량 ( 선택 mg V )",
+          "label": "lidocaine 투여량",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -20797,7 +21385,7 @@
         {
           "name": "LIDOCAINE_YN",
           "type": "checkbox",
-          "label": "lidocaine 투여량 ( 선택 mg V )",
+          "label": "lidocaine 투여량",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -20819,7 +21407,7 @@
         {
           "name": "CA_GLU_UNIT",
           "type": "select",
-          "label": "Ca-gluconate 투여량 ( 선택 mg g ml A )",
+          "label": "Ca-gluconate 투여량",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -20857,7 +21445,7 @@
         {
           "name": "CA_GLU",
           "type": "text",
-          "label": "Ca-gluconate 투여량 ( 선택 mg g ml A )",
+          "label": "Ca-gluconate 투여량",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -20874,7 +21462,7 @@
         {
           "name": "CA_GLU_YN",
           "type": "checkbox",
-          "label": "Ca-gluconate 투여량 ( 선택 mg g ml A )",
+          "label": "Ca-gluconate 투여량",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -23769,7 +24357,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 심정지리듬 ↓"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -24079,7 +24667,7 @@
         {
           "name": "NGAL_UNIT",
           "type": "select",
-          "label": "NGAL ( 선택 ㎍/mL ng/mL )",
+          "label": "NGAL",
           "context": "",
           "section": "선택변수",
           "readonly": false,
@@ -24109,7 +24697,7 @@
         {
           "name": "NGAL",
           "type": "text",
-          "label": "NGAL ( 선택 ㎍/mL ng/mL )",
+          "label": "NGAL",
           "context": "",
           "section": "선택변수",
           "readonly": false,
@@ -24126,7 +24714,7 @@
         {
           "name": "NGAL_YN",
           "type": "checkbox",
-          "label": "NGAL ( 선택 ㎍/mL ng/mL )",
+          "label": "NGAL",
           "context": "",
           "section": "선택변수",
           "readonly": false,
@@ -25889,7 +26477,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행 ↓"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -26338,7 +26926,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행 ↓"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -26787,7 +27375,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행 ↓"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -27266,7 +27854,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행 ↓"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -27364,7 +27952,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행 ↓ * Arterial BP는 A-line 이용"
+              "label": "미상 * Arterial BP는 A-line 이용"
             }
           ],
           "region": "optional",
@@ -27530,7 +28118,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행 ↓ * RA BP는 C-line 이용"
+              "label": "미상 * RA BP는 C-line 이용"
             }
           ],
           "region": "optional",
@@ -27768,7 +28356,7 @@
     {
       "key": "alive_after",
       "title": "6.소생후단계영역",
-      "file": "new_case8.html",
+      "file": "new_case6.html",
       "action": "alive_after_addOk.asp",
       "enctype": "multipart/form-data",
       "fields": [
@@ -28100,7 +28688,7 @@
             },
             {
               "value": "3",
-              "label": "미사용 <INPUT type=\"radio\" name=\"HYPER\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미사용"
             }
           ],
           "region": "core",
@@ -28271,7 +28859,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"ROSC_INOTR_TYPE\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);setROSC_INOTR_TYPE(this.form);\" style=\"border:0px;\">Dopamine&nbsp; <INPUT type=\"radio\" name=\"ROSC_INOTR_TYPE\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);setROSC_INOTR_TYPE(this.form);\" style=\"border:0px;\">Norepinephrine&nbsp; <INPUT type=\"radio\" name=\"ROSC_INOTR_TYPE\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);setROSC_INOTR_TYPE(this.form);\" style=\"border:0px;\">Dobutamine&nbsp; <INPUT type=\"radio\" name=\"ROSC_INOTR_TYPE\" value=\"4\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);setROSC_INOTR_TYPE(this.form);\" style=\"border:0px;\">Epinephrine&nbsp;<br> <INPUT type=\"radio\" name=\"ROSC_INOTR_TYPE\" value=\"5\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);setROSC_INOTR_TYPE(this.form);\" style=\"border:0px;\">Vasopressin&nbsp; <INPUT type=\"radio\" name=\"ROSC_INOTR_TYPE\" value=\"88\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);setROSC_INOTR_TYPE(this.form);\" style=\"border:0px;\">기타&nbsp; (<INPUT class=\"box\" type=\"text\" name=\"ROSC_INOTR_TYPE_ETC\" value=\"\" size=\"20\" maxlength=\"200\">) <INPUT type=\"radio\" name=\"ROSC_INOTR_TYPE\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);setROSC_INOTR_TYPE(this.form);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -30302,7 +30890,7 @@
         {
           "name": "LAW_TEMP",
           "type": "radio",
-          "label": "저체온요법 적용",
+          "label": "목표체온조절 적용",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -30466,52 +31054,838 @@
           "user_entry": true
         },
         {
-          "name": "LAW_TEMP_LOC",
-          "type": "radio",
-          "label": "저체온 시작 장소",
+          "name": "LAW_TEMP_DATE",
+          "type": "text",
+          "label": "목표체온조절 요법 시작일시",
+          "context": "",
+          "section": "핵심변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "date",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "LAW_TEMP_HOUR",
+          "type": "select",
+          "label": "목표체온조절 요법 시작일시",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
           "value": "",
-          "widget": "radio",
+          "widget": "time_hour",
+          "suffix": "시",
+          "options": [
+            {
+              "value": "--",
+              "label": "-"
+            },
+            {
+              "value": "00",
+              "label": "00"
+            },
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "02",
+              "label": "02"
+            },
+            {
+              "value": "03",
+              "label": "03"
+            },
+            {
+              "value": "04",
+              "label": "04"
+            },
+            {
+              "value": "05",
+              "label": "05"
+            },
+            {
+              "value": "06",
+              "label": "06"
+            },
+            {
+              "value": "07",
+              "label": "07"
+            },
+            {
+              "value": "08",
+              "label": "08"
+            },
+            {
+              "value": "09",
+              "label": "09"
+            },
+            {
+              "value": "10",
+              "label": "10"
+            },
+            {
+              "value": "11",
+              "label": "11"
+            },
+            {
+              "value": "12",
+              "label": "12"
+            },
+            {
+              "value": "13",
+              "label": "13"
+            },
+            {
+              "value": "14",
+              "label": "14"
+            },
+            {
+              "value": "15",
+              "label": "15"
+            },
+            {
+              "value": "16",
+              "label": "16"
+            },
+            {
+              "value": "17",
+              "label": "17"
+            },
+            {
+              "value": "18",
+              "label": "18"
+            },
+            {
+              "value": "19",
+              "label": "19"
+            },
+            {
+              "value": "20",
+              "label": "20"
+            },
+            {
+              "value": "21",
+              "label": "21"
+            },
+            {
+              "value": "22",
+              "label": "22"
+            },
+            {
+              "value": "23",
+              "label": "23"
+            }
+          ],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "LAW_TEMP_MIN",
+          "type": "select",
+          "label": "목표체온조절 요법 시작일시",
+          "context": "",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "time_min",
+          "suffix": "분",
+          "options": [
+            {
+              "value": "XX",
+              "label": "-"
+            },
+            {
+              "value": "00",
+              "label": "00"
+            },
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "02",
+              "label": "02"
+            },
+            {
+              "value": "03",
+              "label": "03"
+            },
+            {
+              "value": "04",
+              "label": "04"
+            },
+            {
+              "value": "05",
+              "label": "05"
+            },
+            {
+              "value": "06",
+              "label": "06"
+            },
+            {
+              "value": "07",
+              "label": "07"
+            },
+            {
+              "value": "08",
+              "label": "08"
+            },
+            {
+              "value": "09",
+              "label": "09"
+            },
+            {
+              "value": "10",
+              "label": "10"
+            },
+            {
+              "value": "11",
+              "label": "11"
+            },
+            {
+              "value": "12",
+              "label": "12"
+            },
+            {
+              "value": "13",
+              "label": "13"
+            },
+            {
+              "value": "14",
+              "label": "14"
+            },
+            {
+              "value": "15",
+              "label": "15"
+            },
+            {
+              "value": "16",
+              "label": "16"
+            },
+            {
+              "value": "17",
+              "label": "17"
+            },
+            {
+              "value": "18",
+              "label": "18"
+            },
+            {
+              "value": "19",
+              "label": "19"
+            },
+            {
+              "value": "20",
+              "label": "20"
+            },
+            {
+              "value": "21",
+              "label": "21"
+            },
+            {
+              "value": "22",
+              "label": "22"
+            },
+            {
+              "value": "23",
+              "label": "23"
+            },
+            {
+              "value": "24",
+              "label": "24"
+            },
+            {
+              "value": "25",
+              "label": "25"
+            },
+            {
+              "value": "26",
+              "label": "26"
+            },
+            {
+              "value": "27",
+              "label": "27"
+            },
+            {
+              "value": "28",
+              "label": "28"
+            },
+            {
+              "value": "29",
+              "label": "29"
+            },
+            {
+              "value": "30",
+              "label": "30"
+            },
+            {
+              "value": "31",
+              "label": "31"
+            },
+            {
+              "value": "32",
+              "label": "32"
+            },
+            {
+              "value": "33",
+              "label": "33"
+            },
+            {
+              "value": "34",
+              "label": "34"
+            },
+            {
+              "value": "35",
+              "label": "35"
+            },
+            {
+              "value": "36",
+              "label": "36"
+            },
+            {
+              "value": "37",
+              "label": "37"
+            },
+            {
+              "value": "38",
+              "label": "38"
+            },
+            {
+              "value": "39",
+              "label": "39"
+            },
+            {
+              "value": "40",
+              "label": "40"
+            },
+            {
+              "value": "41",
+              "label": "41"
+            },
+            {
+              "value": "42",
+              "label": "42"
+            },
+            {
+              "value": "43",
+              "label": "43"
+            },
+            {
+              "value": "44",
+              "label": "44"
+            },
+            {
+              "value": "45",
+              "label": "45"
+            },
+            {
+              "value": "46",
+              "label": "46"
+            },
+            {
+              "value": "47",
+              "label": "47"
+            },
+            {
+              "value": "48",
+              "label": "48"
+            },
+            {
+              "value": "49",
+              "label": "49"
+            },
+            {
+              "value": "50",
+              "label": "50"
+            },
+            {
+              "value": "51",
+              "label": "51"
+            },
+            {
+              "value": "52",
+              "label": "52"
+            },
+            {
+              "value": "53",
+              "label": "53"
+            },
+            {
+              "value": "54",
+              "label": "54"
+            },
+            {
+              "value": "55",
+              "label": "55"
+            },
+            {
+              "value": "56",
+              "label": "56"
+            },
+            {
+              "value": "57",
+              "label": "57"
+            },
+            {
+              "value": "58",
+              "label": "58"
+            },
+            {
+              "value": "59",
+              "label": "59"
+            }
+          ],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "LAW_TEMP_DATE_UK",
+          "type": "checkbox",
+          "label": "목표체온조절 요법 시작일시",
+          "context": "",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
           "suffix": "",
           "options": [],
           "choices": [
             {
-              "value": "1",
-              "label": "병원 밖"
-            },
-            {
-              "value": "2",
-              "label": "병원 내"
+              "value": "",
+              "label": "미상"
             }
           ],
           "region": "core",
           "user_entry": true
         },
         {
-          "name": "LAW_TEMP_TIME",
-          "type": "radio",
-          "label": "저체온 시작시기",
+          "name": "RE_TEMP_DATE",
+          "type": "text",
+          "label": "재가온 요법 시작일시",
+          "context": "",
+          "section": "핵심변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "date",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "RE_TEMP_HOUR",
+          "type": "select",
+          "label": "재가온 요법 시작일시",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
           "value": "",
-          "widget": "radio",
+          "widget": "time_hour",
+          "suffix": "시",
+          "options": [
+            {
+              "value": "--",
+              "label": "-"
+            },
+            {
+              "value": "00",
+              "label": "00"
+            },
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "02",
+              "label": "02"
+            },
+            {
+              "value": "03",
+              "label": "03"
+            },
+            {
+              "value": "04",
+              "label": "04"
+            },
+            {
+              "value": "05",
+              "label": "05"
+            },
+            {
+              "value": "06",
+              "label": "06"
+            },
+            {
+              "value": "07",
+              "label": "07"
+            },
+            {
+              "value": "08",
+              "label": "08"
+            },
+            {
+              "value": "09",
+              "label": "09"
+            },
+            {
+              "value": "10",
+              "label": "10"
+            },
+            {
+              "value": "11",
+              "label": "11"
+            },
+            {
+              "value": "12",
+              "label": "12"
+            },
+            {
+              "value": "13",
+              "label": "13"
+            },
+            {
+              "value": "14",
+              "label": "14"
+            },
+            {
+              "value": "15",
+              "label": "15"
+            },
+            {
+              "value": "16",
+              "label": "16"
+            },
+            {
+              "value": "17",
+              "label": "17"
+            },
+            {
+              "value": "18",
+              "label": "18"
+            },
+            {
+              "value": "19",
+              "label": "19"
+            },
+            {
+              "value": "20",
+              "label": "20"
+            },
+            {
+              "value": "21",
+              "label": "21"
+            },
+            {
+              "value": "22",
+              "label": "22"
+            },
+            {
+              "value": "23",
+              "label": "23"
+            }
+          ],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "RE_TEMP_MIN",
+          "type": "select",
+          "label": "재가온 요법 시작일시",
+          "context": "",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "time_min",
+          "suffix": "분",
+          "options": [
+            {
+              "value": "XX",
+              "label": "-"
+            },
+            {
+              "value": "00",
+              "label": "00"
+            },
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "02",
+              "label": "02"
+            },
+            {
+              "value": "03",
+              "label": "03"
+            },
+            {
+              "value": "04",
+              "label": "04"
+            },
+            {
+              "value": "05",
+              "label": "05"
+            },
+            {
+              "value": "06",
+              "label": "06"
+            },
+            {
+              "value": "07",
+              "label": "07"
+            },
+            {
+              "value": "08",
+              "label": "08"
+            },
+            {
+              "value": "09",
+              "label": "09"
+            },
+            {
+              "value": "10",
+              "label": "10"
+            },
+            {
+              "value": "11",
+              "label": "11"
+            },
+            {
+              "value": "12",
+              "label": "12"
+            },
+            {
+              "value": "13",
+              "label": "13"
+            },
+            {
+              "value": "14",
+              "label": "14"
+            },
+            {
+              "value": "15",
+              "label": "15"
+            },
+            {
+              "value": "16",
+              "label": "16"
+            },
+            {
+              "value": "17",
+              "label": "17"
+            },
+            {
+              "value": "18",
+              "label": "18"
+            },
+            {
+              "value": "19",
+              "label": "19"
+            },
+            {
+              "value": "20",
+              "label": "20"
+            },
+            {
+              "value": "21",
+              "label": "21"
+            },
+            {
+              "value": "22",
+              "label": "22"
+            },
+            {
+              "value": "23",
+              "label": "23"
+            },
+            {
+              "value": "24",
+              "label": "24"
+            },
+            {
+              "value": "25",
+              "label": "25"
+            },
+            {
+              "value": "26",
+              "label": "26"
+            },
+            {
+              "value": "27",
+              "label": "27"
+            },
+            {
+              "value": "28",
+              "label": "28"
+            },
+            {
+              "value": "29",
+              "label": "29"
+            },
+            {
+              "value": "30",
+              "label": "30"
+            },
+            {
+              "value": "31",
+              "label": "31"
+            },
+            {
+              "value": "32",
+              "label": "32"
+            },
+            {
+              "value": "33",
+              "label": "33"
+            },
+            {
+              "value": "34",
+              "label": "34"
+            },
+            {
+              "value": "35",
+              "label": "35"
+            },
+            {
+              "value": "36",
+              "label": "36"
+            },
+            {
+              "value": "37",
+              "label": "37"
+            },
+            {
+              "value": "38",
+              "label": "38"
+            },
+            {
+              "value": "39",
+              "label": "39"
+            },
+            {
+              "value": "40",
+              "label": "40"
+            },
+            {
+              "value": "41",
+              "label": "41"
+            },
+            {
+              "value": "42",
+              "label": "42"
+            },
+            {
+              "value": "43",
+              "label": "43"
+            },
+            {
+              "value": "44",
+              "label": "44"
+            },
+            {
+              "value": "45",
+              "label": "45"
+            },
+            {
+              "value": "46",
+              "label": "46"
+            },
+            {
+              "value": "47",
+              "label": "47"
+            },
+            {
+              "value": "48",
+              "label": "48"
+            },
+            {
+              "value": "49",
+              "label": "49"
+            },
+            {
+              "value": "50",
+              "label": "50"
+            },
+            {
+              "value": "51",
+              "label": "51"
+            },
+            {
+              "value": "52",
+              "label": "52"
+            },
+            {
+              "value": "53",
+              "label": "53"
+            },
+            {
+              "value": "54",
+              "label": "54"
+            },
+            {
+              "value": "55",
+              "label": "55"
+            },
+            {
+              "value": "56",
+              "label": "56"
+            },
+            {
+              "value": "57",
+              "label": "57"
+            },
+            {
+              "value": "58",
+              "label": "58"
+            },
+            {
+              "value": "59",
+              "label": "59"
+            }
+          ],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "RE_TEMP_DATE_UK",
+          "type": "checkbox",
+          "label": "재가온 요법 시작일시",
+          "context": "",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
           "suffix": "",
           "options": [],
           "choices": [
             {
-              "value": "1",
-              "label": "소생술 동안"
-            },
-            {
-              "value": "2",
-              "label": "자발순환회복 후"
+              "value": "",
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -30520,7 +31894,7 @@
         {
           "name": "LAW_TEMP_TARGET",
           "type": "radio",
-          "label": "저체온 목표온도",
+          "label": "목표체온조절 목표온도",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -30550,7 +31924,7 @@
         {
           "name": "LAW_TEMP_TARGET_ETC",
           "type": "text",
-          "label": "저체온 목표온도",
+          "label": "목표체온조절 목표온도",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -30612,9 +31986,9 @@
           "user_entry": true
         },
         {
-          "name": "ECMO",
+          "name": "ECMO7",
           "type": "radio",
-          "label": "체외순환기(ECMO)",
+          "label": "입원 중 ECMO 시행 여부",
           "context": "",
           "section": "핵심변수",
           "readonly": false,
@@ -30627,18 +32001,433 @@
           "choices": [
             {
               "value": "1",
-              "label": "등록병원 시행"
+              "label": "시행함"
             },
             {
               "value": "2",
-              "label": "타병원 시행 후 내원"
-            },
-            {
-              "value": "3",
               "label": "미시행"
             },
             {
               "value": "99",
+              "label": "미상"
+            }
+          ],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "ECMO7_DATE",
+          "type": "text",
+          "label": "시행일시",
+          "context": "입원 중 ECMO 시행 여부",
+          "section": "핵심변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "date",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "ECMO7_HOUR",
+          "type": "select",
+          "label": "시행일시",
+          "context": "입원 중 ECMO 시행 여부",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "time_hour",
+          "suffix": "시",
+          "options": [
+            {
+              "value": "--",
+              "label": "-"
+            },
+            {
+              "value": "00",
+              "label": "00"
+            },
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "02",
+              "label": "02"
+            },
+            {
+              "value": "03",
+              "label": "03"
+            },
+            {
+              "value": "04",
+              "label": "04"
+            },
+            {
+              "value": "05",
+              "label": "05"
+            },
+            {
+              "value": "06",
+              "label": "06"
+            },
+            {
+              "value": "07",
+              "label": "07"
+            },
+            {
+              "value": "08",
+              "label": "08"
+            },
+            {
+              "value": "09",
+              "label": "09"
+            },
+            {
+              "value": "10",
+              "label": "10"
+            },
+            {
+              "value": "11",
+              "label": "11"
+            },
+            {
+              "value": "12",
+              "label": "12"
+            },
+            {
+              "value": "13",
+              "label": "13"
+            },
+            {
+              "value": "14",
+              "label": "14"
+            },
+            {
+              "value": "15",
+              "label": "15"
+            },
+            {
+              "value": "16",
+              "label": "16"
+            },
+            {
+              "value": "17",
+              "label": "17"
+            },
+            {
+              "value": "18",
+              "label": "18"
+            },
+            {
+              "value": "19",
+              "label": "19"
+            },
+            {
+              "value": "20",
+              "label": "20"
+            },
+            {
+              "value": "21",
+              "label": "21"
+            },
+            {
+              "value": "22",
+              "label": "22"
+            },
+            {
+              "value": "23",
+              "label": "23"
+            }
+          ],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "ECMO7_MIN",
+          "type": "select",
+          "label": "시행일시",
+          "context": "입원 중 ECMO 시행 여부",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "time_min",
+          "suffix": "분",
+          "options": [
+            {
+              "value": "XX",
+              "label": "-"
+            },
+            {
+              "value": "00",
+              "label": "00"
+            },
+            {
+              "value": "01",
+              "label": "01"
+            },
+            {
+              "value": "02",
+              "label": "02"
+            },
+            {
+              "value": "03",
+              "label": "03"
+            },
+            {
+              "value": "04",
+              "label": "04"
+            },
+            {
+              "value": "05",
+              "label": "05"
+            },
+            {
+              "value": "06",
+              "label": "06"
+            },
+            {
+              "value": "07",
+              "label": "07"
+            },
+            {
+              "value": "08",
+              "label": "08"
+            },
+            {
+              "value": "09",
+              "label": "09"
+            },
+            {
+              "value": "10",
+              "label": "10"
+            },
+            {
+              "value": "11",
+              "label": "11"
+            },
+            {
+              "value": "12",
+              "label": "12"
+            },
+            {
+              "value": "13",
+              "label": "13"
+            },
+            {
+              "value": "14",
+              "label": "14"
+            },
+            {
+              "value": "15",
+              "label": "15"
+            },
+            {
+              "value": "16",
+              "label": "16"
+            },
+            {
+              "value": "17",
+              "label": "17"
+            },
+            {
+              "value": "18",
+              "label": "18"
+            },
+            {
+              "value": "19",
+              "label": "19"
+            },
+            {
+              "value": "20",
+              "label": "20"
+            },
+            {
+              "value": "21",
+              "label": "21"
+            },
+            {
+              "value": "22",
+              "label": "22"
+            },
+            {
+              "value": "23",
+              "label": "23"
+            },
+            {
+              "value": "24",
+              "label": "24"
+            },
+            {
+              "value": "25",
+              "label": "25"
+            },
+            {
+              "value": "26",
+              "label": "26"
+            },
+            {
+              "value": "27",
+              "label": "27"
+            },
+            {
+              "value": "28",
+              "label": "28"
+            },
+            {
+              "value": "29",
+              "label": "29"
+            },
+            {
+              "value": "30",
+              "label": "30"
+            },
+            {
+              "value": "31",
+              "label": "31"
+            },
+            {
+              "value": "32",
+              "label": "32"
+            },
+            {
+              "value": "33",
+              "label": "33"
+            },
+            {
+              "value": "34",
+              "label": "34"
+            },
+            {
+              "value": "35",
+              "label": "35"
+            },
+            {
+              "value": "36",
+              "label": "36"
+            },
+            {
+              "value": "37",
+              "label": "37"
+            },
+            {
+              "value": "38",
+              "label": "38"
+            },
+            {
+              "value": "39",
+              "label": "39"
+            },
+            {
+              "value": "40",
+              "label": "40"
+            },
+            {
+              "value": "41",
+              "label": "41"
+            },
+            {
+              "value": "42",
+              "label": "42"
+            },
+            {
+              "value": "43",
+              "label": "43"
+            },
+            {
+              "value": "44",
+              "label": "44"
+            },
+            {
+              "value": "45",
+              "label": "45"
+            },
+            {
+              "value": "46",
+              "label": "46"
+            },
+            {
+              "value": "47",
+              "label": "47"
+            },
+            {
+              "value": "48",
+              "label": "48"
+            },
+            {
+              "value": "49",
+              "label": "49"
+            },
+            {
+              "value": "50",
+              "label": "50"
+            },
+            {
+              "value": "51",
+              "label": "51"
+            },
+            {
+              "value": "52",
+              "label": "52"
+            },
+            {
+              "value": "53",
+              "label": "53"
+            },
+            {
+              "value": "54",
+              "label": "54"
+            },
+            {
+              "value": "55",
+              "label": "55"
+            },
+            {
+              "value": "56",
+              "label": "56"
+            },
+            {
+              "value": "57",
+              "label": "57"
+            },
+            {
+              "value": "58",
+              "label": "58"
+            },
+            {
+              "value": "59",
+              "label": "59"
+            }
+          ],
+          "choices": [],
+          "region": "core",
+          "user_entry": true
+        },
+        {
+          "name": "ECMO7_DATE_UK",
+          "type": "checkbox",
+          "label": "시행일시",
+          "context": "입원 중 ECMO 시행 여부",
+          "section": "핵심변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "",
               "label": "미상"
             }
           ],
@@ -30702,7 +32491,7 @@
           "hidden": false,
           "system": false,
           "value": "",
-          "widget": "select",
+          "widget": "time_hour",
           "suffix": "시",
           "options": [
             {
@@ -30820,7 +32609,7 @@
           "hidden": false,
           "system": false,
           "value": "",
-          "widget": "select",
+          "widget": "time_min",
           "suffix": "분",
           "options": [
             {
@@ -31126,7 +32915,7 @@
           "options": [],
           "choices": [],
           "region": "core",
-          "user_entry": true
+          "user_entry": false
         },
         {
           "name": "OLD_FILE_DEL",
@@ -31219,7 +33008,7 @@
           "hidden": false,
           "system": false,
           "value": "",
-          "widget": "select",
+          "widget": "time_hour",
           "suffix": "시",
           "options": [
             {
@@ -31337,7 +33126,7 @@
           "hidden": false,
           "system": false,
           "value": "",
-          "widget": "select",
+          "widget": "time_min",
           "suffix": "분",
           "options": [
             {
@@ -31643,7 +33432,7 @@
           "options": [],
           "choices": [],
           "region": "core",
-          "user_entry": true
+          "user_entry": false
         },
         {
           "name": "OLD_FILE_DEL1",
@@ -32160,7 +33949,7 @@
           "options": [],
           "choices": [],
           "region": "core",
-          "user_entry": true
+          "user_entry": false
         },
         {
           "name": "OLD_FILE_DEL2",
@@ -32677,7 +34466,7 @@
           "options": [],
           "choices": [],
           "region": "core",
-          "user_entry": true
+          "user_entry": false
         },
         {
           "name": "OLD_FILE_DEL3",
@@ -32746,7 +34535,7 @@
         {
           "name": "GCS_E_RESULT",
           "type": "text",
-          "label": "검사 결과",
+          "label": "E (개안)",
           "context": "자발순환회복 직후 Glasgow Coma Scale",
           "section": "핵심변수",
           "readonly": false,
@@ -32763,7 +34552,7 @@
         {
           "name": "GCS_V_RESULT",
           "type": "text",
-          "label": "검사 결과",
+          "label": "V (언어)",
           "context": "자발순환회복 직후 Glasgow Coma Scale",
           "section": "핵심변수",
           "readonly": false,
@@ -32780,7 +34569,7 @@
         {
           "name": "GCS_M_RESULT",
           "type": "text",
-          "label": "검사 결과",
+          "label": "M (운동)",
           "context": "자발순환회복 직후 Glasgow Coma Scale",
           "section": "핵심변수",
           "readonly": false,
@@ -32995,7 +34784,7 @@
         {
           "name": "GCS72_E_RESULT",
           "type": "text",
-          "label": "검사 결과",
+          "label": "E (개안)",
           "context": "자발순환회복 72시간째 Glasgow Coma Scale",
           "section": "핵심변수",
           "readonly": false,
@@ -33012,7 +34801,7 @@
         {
           "name": "GCS72_V_RESULT",
           "type": "text",
-          "label": "검사 결과",
+          "label": "V (언어)",
           "context": "자발순환회복 72시간째 Glasgow Coma Scale",
           "section": "핵심변수",
           "readonly": false,
@@ -33029,7 +34818,7 @@
         {
           "name": "GCS72_M_RESULT",
           "type": "text",
-          "label": "검사 결과",
+          "label": "M (운동)",
           "context": "자발순환회복 72시간째 Glasgow Coma Scale",
           "section": "핵심변수",
           "readonly": false,
@@ -33212,406 +35001,9 @@
           "user_entry": true
         },
         {
-          "name": "HYPER_DATE",
-          "type": "text",
-          "label": "승압제 사용일시",
-          "context": "",
-          "section": "선택변수",
-          "readonly": true,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "date",
-          "suffix": "",
-          "options": [],
-          "choices": [],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "HYPER_HOUR",
-          "type": "select",
-          "label": "승압제 사용일시",
-          "context": "",
-          "section": "선택변수",
-          "readonly": false,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "time_hour",
-          "suffix": "시",
-          "options": [
-            {
-              "value": "--",
-              "label": "-"
-            },
-            {
-              "value": "00",
-              "label": "00"
-            },
-            {
-              "value": "01",
-              "label": "01"
-            },
-            {
-              "value": "02",
-              "label": "02"
-            },
-            {
-              "value": "03",
-              "label": "03"
-            },
-            {
-              "value": "04",
-              "label": "04"
-            },
-            {
-              "value": "05",
-              "label": "05"
-            },
-            {
-              "value": "06",
-              "label": "06"
-            },
-            {
-              "value": "07",
-              "label": "07"
-            },
-            {
-              "value": "08",
-              "label": "08"
-            },
-            {
-              "value": "09",
-              "label": "09"
-            },
-            {
-              "value": "10",
-              "label": "10"
-            },
-            {
-              "value": "11",
-              "label": "11"
-            },
-            {
-              "value": "12",
-              "label": "12"
-            },
-            {
-              "value": "13",
-              "label": "13"
-            },
-            {
-              "value": "14",
-              "label": "14"
-            },
-            {
-              "value": "15",
-              "label": "15"
-            },
-            {
-              "value": "16",
-              "label": "16"
-            },
-            {
-              "value": "17",
-              "label": "17"
-            },
-            {
-              "value": "18",
-              "label": "18"
-            },
-            {
-              "value": "19",
-              "label": "19"
-            },
-            {
-              "value": "20",
-              "label": "20"
-            },
-            {
-              "value": "21",
-              "label": "21"
-            },
-            {
-              "value": "22",
-              "label": "22"
-            },
-            {
-              "value": "23",
-              "label": "23"
-            }
-          ],
-          "choices": [],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "HYPER_MIN",
-          "type": "select",
-          "label": "승압제 사용일시",
-          "context": "",
-          "section": "선택변수",
-          "readonly": false,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "time_min",
-          "suffix": "분",
-          "options": [
-            {
-              "value": "XX",
-              "label": "-"
-            },
-            {
-              "value": "00",
-              "label": "00"
-            },
-            {
-              "value": "01",
-              "label": "01"
-            },
-            {
-              "value": "02",
-              "label": "02"
-            },
-            {
-              "value": "03",
-              "label": "03"
-            },
-            {
-              "value": "04",
-              "label": "04"
-            },
-            {
-              "value": "05",
-              "label": "05"
-            },
-            {
-              "value": "06",
-              "label": "06"
-            },
-            {
-              "value": "07",
-              "label": "07"
-            },
-            {
-              "value": "08",
-              "label": "08"
-            },
-            {
-              "value": "09",
-              "label": "09"
-            },
-            {
-              "value": "10",
-              "label": "10"
-            },
-            {
-              "value": "11",
-              "label": "11"
-            },
-            {
-              "value": "12",
-              "label": "12"
-            },
-            {
-              "value": "13",
-              "label": "13"
-            },
-            {
-              "value": "14",
-              "label": "14"
-            },
-            {
-              "value": "15",
-              "label": "15"
-            },
-            {
-              "value": "16",
-              "label": "16"
-            },
-            {
-              "value": "17",
-              "label": "17"
-            },
-            {
-              "value": "18",
-              "label": "18"
-            },
-            {
-              "value": "19",
-              "label": "19"
-            },
-            {
-              "value": "20",
-              "label": "20"
-            },
-            {
-              "value": "21",
-              "label": "21"
-            },
-            {
-              "value": "22",
-              "label": "22"
-            },
-            {
-              "value": "23",
-              "label": "23"
-            },
-            {
-              "value": "24",
-              "label": "24"
-            },
-            {
-              "value": "25",
-              "label": "25"
-            },
-            {
-              "value": "26",
-              "label": "26"
-            },
-            {
-              "value": "27",
-              "label": "27"
-            },
-            {
-              "value": "28",
-              "label": "28"
-            },
-            {
-              "value": "29",
-              "label": "29"
-            },
-            {
-              "value": "30",
-              "label": "30"
-            },
-            {
-              "value": "31",
-              "label": "31"
-            },
-            {
-              "value": "32",
-              "label": "32"
-            },
-            {
-              "value": "33",
-              "label": "33"
-            },
-            {
-              "value": "34",
-              "label": "34"
-            },
-            {
-              "value": "35",
-              "label": "35"
-            },
-            {
-              "value": "36",
-              "label": "36"
-            },
-            {
-              "value": "37",
-              "label": "37"
-            },
-            {
-              "value": "38",
-              "label": "38"
-            },
-            {
-              "value": "39",
-              "label": "39"
-            },
-            {
-              "value": "40",
-              "label": "40"
-            },
-            {
-              "value": "41",
-              "label": "41"
-            },
-            {
-              "value": "42",
-              "label": "42"
-            },
-            {
-              "value": "43",
-              "label": "43"
-            },
-            {
-              "value": "44",
-              "label": "44"
-            },
-            {
-              "value": "45",
-              "label": "45"
-            },
-            {
-              "value": "46",
-              "label": "46"
-            },
-            {
-              "value": "47",
-              "label": "47"
-            },
-            {
-              "value": "48",
-              "label": "48"
-            },
-            {
-              "value": "49",
-              "label": "49"
-            },
-            {
-              "value": "50",
-              "label": "50"
-            },
-            {
-              "value": "51",
-              "label": "51"
-            },
-            {
-              "value": "52",
-              "label": "52"
-            },
-            {
-              "value": "53",
-              "label": "53"
-            },
-            {
-              "value": "54",
-              "label": "54"
-            },
-            {
-              "value": "55",
-              "label": "55"
-            },
-            {
-              "value": "56",
-              "label": "56"
-            },
-            {
-              "value": "57",
-              "label": "57"
-            },
-            {
-              "value": "58",
-              "label": "58"
-            },
-            {
-              "value": "59",
-              "label": "59"
-            }
-          ],
-          "choices": [],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "HYPER_DATE_UK",
+          "name": "INOTR_ED_DOPA",
           "type": "checkbox",
-          "label": "승압제 사용일시",
+          "label": "승압제(ED)",
           "context": "",
           "section": "선택변수",
           "readonly": false,
@@ -33624,23 +35016,70 @@
           "choices": [
             {
               "value": "",
-              "label": "미상"
+              "label": "Dopamine"
             }
           ],
           "region": "optional",
           "user_entry": false
         },
         {
-          "name": "ECMO_DATE",
+          "name": "INOTR_ED_DOPA_RATE",
           "type": "text",
-          "label": "체외순환기(ECMO) 시행일시",
-          "context": "",
+          "label": "Dopamine",
+          "context": "승압제(ED)",
           "section": "선택변수",
           "readonly": true,
           "hidden": false,
           "system": false,
           "value": "",
-          "widget": "date",
+          "widget": "text",
+          "suffix": "단위:",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_DOPA_UNIT",
+          "type": "radio",
+          "label": "승압제(ED)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "radio",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "1",
+              "label": "mcg/min"
+            },
+            {
+              "value": "2",
+              "label": "mcg/min/kg"
+            },
+            {
+              "value": "3",
+              "label": "기타"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_DOPA_UNIT_ETC",
+          "type": "text",
+          "label": "Dopamine",
+          "context": "승압제(ED)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
           "suffix": "",
           "options": [],
           "choices": [],
@@ -33648,389 +35087,9 @@
           "user_entry": false
         },
         {
-          "name": "ECMO_HOUR",
-          "type": "select",
-          "label": "체외순환기(ECMO) 시행일시",
-          "context": "",
-          "section": "선택변수",
-          "readonly": false,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "time_hour",
-          "suffix": "시",
-          "options": [
-            {
-              "value": "--",
-              "label": "-"
-            },
-            {
-              "value": "00",
-              "label": "00"
-            },
-            {
-              "value": "01",
-              "label": "01"
-            },
-            {
-              "value": "02",
-              "label": "02"
-            },
-            {
-              "value": "03",
-              "label": "03"
-            },
-            {
-              "value": "04",
-              "label": "04"
-            },
-            {
-              "value": "05",
-              "label": "05"
-            },
-            {
-              "value": "06",
-              "label": "06"
-            },
-            {
-              "value": "07",
-              "label": "07"
-            },
-            {
-              "value": "08",
-              "label": "08"
-            },
-            {
-              "value": "09",
-              "label": "09"
-            },
-            {
-              "value": "10",
-              "label": "10"
-            },
-            {
-              "value": "11",
-              "label": "11"
-            },
-            {
-              "value": "12",
-              "label": "12"
-            },
-            {
-              "value": "13",
-              "label": "13"
-            },
-            {
-              "value": "14",
-              "label": "14"
-            },
-            {
-              "value": "15",
-              "label": "15"
-            },
-            {
-              "value": "16",
-              "label": "16"
-            },
-            {
-              "value": "17",
-              "label": "17"
-            },
-            {
-              "value": "18",
-              "label": "18"
-            },
-            {
-              "value": "19",
-              "label": "19"
-            },
-            {
-              "value": "20",
-              "label": "20"
-            },
-            {
-              "value": "21",
-              "label": "21"
-            },
-            {
-              "value": "22",
-              "label": "22"
-            },
-            {
-              "value": "23",
-              "label": "23"
-            }
-          ],
-          "choices": [],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "ECMO_MIN",
-          "type": "select",
-          "label": "체외순환기(ECMO) 시행일시",
-          "context": "",
-          "section": "선택변수",
-          "readonly": false,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "time_min",
-          "suffix": "분",
-          "options": [
-            {
-              "value": "XX",
-              "label": "-"
-            },
-            {
-              "value": "00",
-              "label": "00"
-            },
-            {
-              "value": "01",
-              "label": "01"
-            },
-            {
-              "value": "02",
-              "label": "02"
-            },
-            {
-              "value": "03",
-              "label": "03"
-            },
-            {
-              "value": "04",
-              "label": "04"
-            },
-            {
-              "value": "05",
-              "label": "05"
-            },
-            {
-              "value": "06",
-              "label": "06"
-            },
-            {
-              "value": "07",
-              "label": "07"
-            },
-            {
-              "value": "08",
-              "label": "08"
-            },
-            {
-              "value": "09",
-              "label": "09"
-            },
-            {
-              "value": "10",
-              "label": "10"
-            },
-            {
-              "value": "11",
-              "label": "11"
-            },
-            {
-              "value": "12",
-              "label": "12"
-            },
-            {
-              "value": "13",
-              "label": "13"
-            },
-            {
-              "value": "14",
-              "label": "14"
-            },
-            {
-              "value": "15",
-              "label": "15"
-            },
-            {
-              "value": "16",
-              "label": "16"
-            },
-            {
-              "value": "17",
-              "label": "17"
-            },
-            {
-              "value": "18",
-              "label": "18"
-            },
-            {
-              "value": "19",
-              "label": "19"
-            },
-            {
-              "value": "20",
-              "label": "20"
-            },
-            {
-              "value": "21",
-              "label": "21"
-            },
-            {
-              "value": "22",
-              "label": "22"
-            },
-            {
-              "value": "23",
-              "label": "23"
-            },
-            {
-              "value": "24",
-              "label": "24"
-            },
-            {
-              "value": "25",
-              "label": "25"
-            },
-            {
-              "value": "26",
-              "label": "26"
-            },
-            {
-              "value": "27",
-              "label": "27"
-            },
-            {
-              "value": "28",
-              "label": "28"
-            },
-            {
-              "value": "29",
-              "label": "29"
-            },
-            {
-              "value": "30",
-              "label": "30"
-            },
-            {
-              "value": "31",
-              "label": "31"
-            },
-            {
-              "value": "32",
-              "label": "32"
-            },
-            {
-              "value": "33",
-              "label": "33"
-            },
-            {
-              "value": "34",
-              "label": "34"
-            },
-            {
-              "value": "35",
-              "label": "35"
-            },
-            {
-              "value": "36",
-              "label": "36"
-            },
-            {
-              "value": "37",
-              "label": "37"
-            },
-            {
-              "value": "38",
-              "label": "38"
-            },
-            {
-              "value": "39",
-              "label": "39"
-            },
-            {
-              "value": "40",
-              "label": "40"
-            },
-            {
-              "value": "41",
-              "label": "41"
-            },
-            {
-              "value": "42",
-              "label": "42"
-            },
-            {
-              "value": "43",
-              "label": "43"
-            },
-            {
-              "value": "44",
-              "label": "44"
-            },
-            {
-              "value": "45",
-              "label": "45"
-            },
-            {
-              "value": "46",
-              "label": "46"
-            },
-            {
-              "value": "47",
-              "label": "47"
-            },
-            {
-              "value": "48",
-              "label": "48"
-            },
-            {
-              "value": "49",
-              "label": "49"
-            },
-            {
-              "value": "50",
-              "label": "50"
-            },
-            {
-              "value": "51",
-              "label": "51"
-            },
-            {
-              "value": "52",
-              "label": "52"
-            },
-            {
-              "value": "53",
-              "label": "53"
-            },
-            {
-              "value": "54",
-              "label": "54"
-            },
-            {
-              "value": "55",
-              "label": "55"
-            },
-            {
-              "value": "56",
-              "label": "56"
-            },
-            {
-              "value": "57",
-              "label": "57"
-            },
-            {
-              "value": "58",
-              "label": "58"
-            },
-            {
-              "value": "59",
-              "label": "59"
-            }
-          ],
-          "choices": [],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "ECMO_DATE_UK",
+          "name": "INOTR_ED_NE",
           "type": "checkbox",
-          "label": "체외순환기(ECMO) 시행일시",
+          "label": "승압제(ED)",
           "context": "",
           "section": "선택변수",
           "readonly": false,
@@ -34043,9 +35102,761 @@
           "choices": [
             {
               "value": "",
-              "label": "미상"
+              "label": "Norepinephrine"
             }
           ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_NE_RATE",
+          "type": "text",
+          "label": "Norepinephrine",
+          "context": "승압제(ED)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "단위:",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_NE_UNIT",
+          "type": "radio",
+          "label": "승압제(ED)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "radio",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "1",
+              "label": "mcg/min"
+            },
+            {
+              "value": "2",
+              "label": "mcg/min/kg"
+            },
+            {
+              "value": "3",
+              "label": "기타"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_NE_UNIT_ETC",
+          "type": "text",
+          "label": "Norepinephrine",
+          "context": "승압제(ED)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_DOBU",
+          "type": "checkbox",
+          "label": "승압제(ED)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "",
+              "label": "Dobutamine"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_DOBU_RATE",
+          "type": "text",
+          "label": "Dobutamine",
+          "context": "승압제(ED)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "단위:",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_DOBU_UNIT",
+          "type": "radio",
+          "label": "승압제(ED)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "radio",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "1",
+              "label": "mcg/min"
+            },
+            {
+              "value": "2",
+              "label": "mcg/min/kg"
+            },
+            {
+              "value": "3",
+              "label": "기타"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_DOBU_UNIT_ETC",
+          "type": "text",
+          "label": "Dobutamine",
+          "context": "승압제(ED)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_EPI",
+          "type": "checkbox",
+          "label": "승압제(ED)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "",
+              "label": "Epinephrine"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_EPI_RATE",
+          "type": "text",
+          "label": "Epinephrine",
+          "context": "승압제(ED)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "단위:",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_EPI_UNIT",
+          "type": "radio",
+          "label": "승압제(ED)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "radio",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "1",
+              "label": "mcg/min"
+            },
+            {
+              "value": "2",
+              "label": "mcg/min/kg"
+            },
+            {
+              "value": "3",
+              "label": "기타"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_EPI_UNIT_ETC",
+          "type": "text",
+          "label": "Epinephrine",
+          "context": "승압제(ED)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_VASO",
+          "type": "checkbox",
+          "label": "승압제(ED)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "",
+              "label": "Vasopressin"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_VASO_RATE",
+          "type": "text",
+          "label": "Vasopressin",
+          "context": "승압제(ED)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "단위:",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_VASO_UNIT",
+          "type": "radio",
+          "label": "승압제(ED)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "radio",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "1",
+              "label": "IU/min"
+            },
+            {
+              "value": "2",
+              "label": "IU/min/kg"
+            },
+            {
+              "value": "3",
+              "label": "기타"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_ED_VASO_UNIT_ETC",
+          "type": "text",
+          "label": "Vasopressin",
+          "context": "승압제(ED)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_DOPA",
+          "type": "checkbox",
+          "label": "승압제(72시간)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "",
+              "label": "Dopamine"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_DOPA_RATE",
+          "type": "text",
+          "label": "Dopamine",
+          "context": "승압제(72시간)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "단위:",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_DOPA_UNIT",
+          "type": "radio",
+          "label": "승압제(72시간)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "radio",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "1",
+              "label": "mcg/min"
+            },
+            {
+              "value": "2",
+              "label": "mcg/min/kg"
+            },
+            {
+              "value": "3",
+              "label": "기타"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_DOPA_UNIT_ETC",
+          "type": "text",
+          "label": "Dopamine",
+          "context": "승압제(72시간)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_NE",
+          "type": "checkbox",
+          "label": "승압제(72시간)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "",
+              "label": "Norepinephrine"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_NE_RATE",
+          "type": "text",
+          "label": "Norepinephrine",
+          "context": "승압제(72시간)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "단위:",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_NE_UNIT",
+          "type": "radio",
+          "label": "승압제(72시간)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "radio",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "1",
+              "label": "mcg/min"
+            },
+            {
+              "value": "2",
+              "label": "mcg/min/kg"
+            },
+            {
+              "value": "3",
+              "label": "기타"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_NE_UNIT_ETC",
+          "type": "text",
+          "label": "Norepinephrine",
+          "context": "승압제(72시간)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_DOBU",
+          "type": "checkbox",
+          "label": "승압제(72시간)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "",
+              "label": "Dobutamine"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_DOBU_RATE",
+          "type": "text",
+          "label": "Dobutamine",
+          "context": "승압제(72시간)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "단위:",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_DOBU_UNIT",
+          "type": "radio",
+          "label": "승압제(72시간)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "radio",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "1",
+              "label": "mcg/min"
+            },
+            {
+              "value": "2",
+              "label": "mcg/min/kg"
+            },
+            {
+              "value": "3",
+              "label": "기타"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_DOBU_UNIT_ETC",
+          "type": "text",
+          "label": "Dobutamine",
+          "context": "승압제(72시간)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_EPI",
+          "type": "checkbox",
+          "label": "승압제(72시간)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "",
+              "label": "Epinephrine"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_EPI_RATE",
+          "type": "text",
+          "label": "Epinephrine",
+          "context": "승압제(72시간)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "단위:",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_EPI_UNIT",
+          "type": "radio",
+          "label": "승압제(72시간)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "radio",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "1",
+              "label": "mcg/min"
+            },
+            {
+              "value": "2",
+              "label": "mcg/min/kg"
+            },
+            {
+              "value": "3",
+              "label": "기타"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_EPI_UNIT_ETC",
+          "type": "text",
+          "label": "Epinephrine",
+          "context": "승압제(72시간)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_VASO",
+          "type": "checkbox",
+          "label": "승압제(72시간)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "",
+              "label": "Vasopressin"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_VASO_RATE",
+          "type": "text",
+          "label": "Vasopressin",
+          "context": "승압제(72시간)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "단위:",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_VASO_UNIT",
+          "type": "radio",
+          "label": "승압제(72시간)",
+          "context": "",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "radio",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "1",
+              "label": "IU/min"
+            },
+            {
+              "value": "2",
+              "label": "IU/min/kg"
+            },
+            {
+              "value": "3",
+              "label": "기타"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "INOTR_72_VASO_UNIT_ETC",
+          "type": "text",
+          "label": "Vasopressin",
+          "context": "승압제(72시간)",
+          "section": "선택변수",
+          "readonly": true,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "",
+          "options": [],
+          "choices": [],
           "region": "optional",
           "user_entry": false
         },
@@ -35431,870 +37242,6 @@
           "user_entry": false
         },
         {
-          "name": "ROSC",
-          "type": "radio",
-          "label": "체외순환 시작 시간",
-          "context": "",
-          "section": "선택변수",
-          "readonly": false,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "radio",
-          "suffix": "",
-          "options": [],
-          "choices": [
-            {
-              "value": "1",
-              "label": "ROSC 전"
-            },
-            {
-              "value": "2",
-              "label": "ROSC 후"
-            }
-          ],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "LAW_TEMP_DATE",
-          "type": "text",
-          "label": "저체온 요법 시작일시",
-          "context": "",
-          "section": "선택변수",
-          "readonly": true,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "date",
-          "suffix": "",
-          "options": [],
-          "choices": [],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "LAW_TEMP_HOUR",
-          "type": "select",
-          "label": "저체온 요법 시작일시",
-          "context": "",
-          "section": "선택변수",
-          "readonly": false,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "time_hour",
-          "suffix": "시",
-          "options": [
-            {
-              "value": "--",
-              "label": "-"
-            },
-            {
-              "value": "00",
-              "label": "00"
-            },
-            {
-              "value": "01",
-              "label": "01"
-            },
-            {
-              "value": "02",
-              "label": "02"
-            },
-            {
-              "value": "03",
-              "label": "03"
-            },
-            {
-              "value": "04",
-              "label": "04"
-            },
-            {
-              "value": "05",
-              "label": "05"
-            },
-            {
-              "value": "06",
-              "label": "06"
-            },
-            {
-              "value": "07",
-              "label": "07"
-            },
-            {
-              "value": "08",
-              "label": "08"
-            },
-            {
-              "value": "09",
-              "label": "09"
-            },
-            {
-              "value": "10",
-              "label": "10"
-            },
-            {
-              "value": "11",
-              "label": "11"
-            },
-            {
-              "value": "12",
-              "label": "12"
-            },
-            {
-              "value": "13",
-              "label": "13"
-            },
-            {
-              "value": "14",
-              "label": "14"
-            },
-            {
-              "value": "15",
-              "label": "15"
-            },
-            {
-              "value": "16",
-              "label": "16"
-            },
-            {
-              "value": "17",
-              "label": "17"
-            },
-            {
-              "value": "18",
-              "label": "18"
-            },
-            {
-              "value": "19",
-              "label": "19"
-            },
-            {
-              "value": "20",
-              "label": "20"
-            },
-            {
-              "value": "21",
-              "label": "21"
-            },
-            {
-              "value": "22",
-              "label": "22"
-            },
-            {
-              "value": "23",
-              "label": "23"
-            }
-          ],
-          "choices": [],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "LAW_TEMP_MIN",
-          "type": "select",
-          "label": "저체온 요법 시작일시",
-          "context": "",
-          "section": "선택변수",
-          "readonly": false,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "time_min",
-          "suffix": "분",
-          "options": [
-            {
-              "value": "XX",
-              "label": "-"
-            },
-            {
-              "value": "00",
-              "label": "00"
-            },
-            {
-              "value": "01",
-              "label": "01"
-            },
-            {
-              "value": "02",
-              "label": "02"
-            },
-            {
-              "value": "03",
-              "label": "03"
-            },
-            {
-              "value": "04",
-              "label": "04"
-            },
-            {
-              "value": "05",
-              "label": "05"
-            },
-            {
-              "value": "06",
-              "label": "06"
-            },
-            {
-              "value": "07",
-              "label": "07"
-            },
-            {
-              "value": "08",
-              "label": "08"
-            },
-            {
-              "value": "09",
-              "label": "09"
-            },
-            {
-              "value": "10",
-              "label": "10"
-            },
-            {
-              "value": "11",
-              "label": "11"
-            },
-            {
-              "value": "12",
-              "label": "12"
-            },
-            {
-              "value": "13",
-              "label": "13"
-            },
-            {
-              "value": "14",
-              "label": "14"
-            },
-            {
-              "value": "15",
-              "label": "15"
-            },
-            {
-              "value": "16",
-              "label": "16"
-            },
-            {
-              "value": "17",
-              "label": "17"
-            },
-            {
-              "value": "18",
-              "label": "18"
-            },
-            {
-              "value": "19",
-              "label": "19"
-            },
-            {
-              "value": "20",
-              "label": "20"
-            },
-            {
-              "value": "21",
-              "label": "21"
-            },
-            {
-              "value": "22",
-              "label": "22"
-            },
-            {
-              "value": "23",
-              "label": "23"
-            },
-            {
-              "value": "24",
-              "label": "24"
-            },
-            {
-              "value": "25",
-              "label": "25"
-            },
-            {
-              "value": "26",
-              "label": "26"
-            },
-            {
-              "value": "27",
-              "label": "27"
-            },
-            {
-              "value": "28",
-              "label": "28"
-            },
-            {
-              "value": "29",
-              "label": "29"
-            },
-            {
-              "value": "30",
-              "label": "30"
-            },
-            {
-              "value": "31",
-              "label": "31"
-            },
-            {
-              "value": "32",
-              "label": "32"
-            },
-            {
-              "value": "33",
-              "label": "33"
-            },
-            {
-              "value": "34",
-              "label": "34"
-            },
-            {
-              "value": "35",
-              "label": "35"
-            },
-            {
-              "value": "36",
-              "label": "36"
-            },
-            {
-              "value": "37",
-              "label": "37"
-            },
-            {
-              "value": "38",
-              "label": "38"
-            },
-            {
-              "value": "39",
-              "label": "39"
-            },
-            {
-              "value": "40",
-              "label": "40"
-            },
-            {
-              "value": "41",
-              "label": "41"
-            },
-            {
-              "value": "42",
-              "label": "42"
-            },
-            {
-              "value": "43",
-              "label": "43"
-            },
-            {
-              "value": "44",
-              "label": "44"
-            },
-            {
-              "value": "45",
-              "label": "45"
-            },
-            {
-              "value": "46",
-              "label": "46"
-            },
-            {
-              "value": "47",
-              "label": "47"
-            },
-            {
-              "value": "48",
-              "label": "48"
-            },
-            {
-              "value": "49",
-              "label": "49"
-            },
-            {
-              "value": "50",
-              "label": "50"
-            },
-            {
-              "value": "51",
-              "label": "51"
-            },
-            {
-              "value": "52",
-              "label": "52"
-            },
-            {
-              "value": "53",
-              "label": "53"
-            },
-            {
-              "value": "54",
-              "label": "54"
-            },
-            {
-              "value": "55",
-              "label": "55"
-            },
-            {
-              "value": "56",
-              "label": "56"
-            },
-            {
-              "value": "57",
-              "label": "57"
-            },
-            {
-              "value": "58",
-              "label": "58"
-            },
-            {
-              "value": "59",
-              "label": "59"
-            }
-          ],
-          "choices": [],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "LAW_TEMP_DATE_UK",
-          "type": "checkbox",
-          "label": "저체온 요법 시작일시",
-          "context": "",
-          "section": "선택변수",
-          "readonly": false,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "checkbox",
-          "suffix": "",
-          "options": [],
-          "choices": [
-            {
-              "value": "",
-              "label": "미상"
-            }
-          ],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "RE_TEMP_DATE",
-          "type": "text",
-          "label": "재가온 요법 시작일시",
-          "context": "",
-          "section": "선택변수",
-          "readonly": true,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "date",
-          "suffix": "",
-          "options": [],
-          "choices": [],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "RE_TEMP_HOUR",
-          "type": "select",
-          "label": "재가온 요법 시작일시",
-          "context": "",
-          "section": "선택변수",
-          "readonly": false,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "time_hour",
-          "suffix": "시",
-          "options": [
-            {
-              "value": "--",
-              "label": "-"
-            },
-            {
-              "value": "00",
-              "label": "00"
-            },
-            {
-              "value": "01",
-              "label": "01"
-            },
-            {
-              "value": "02",
-              "label": "02"
-            },
-            {
-              "value": "03",
-              "label": "03"
-            },
-            {
-              "value": "04",
-              "label": "04"
-            },
-            {
-              "value": "05",
-              "label": "05"
-            },
-            {
-              "value": "06",
-              "label": "06"
-            },
-            {
-              "value": "07",
-              "label": "07"
-            },
-            {
-              "value": "08",
-              "label": "08"
-            },
-            {
-              "value": "09",
-              "label": "09"
-            },
-            {
-              "value": "10",
-              "label": "10"
-            },
-            {
-              "value": "11",
-              "label": "11"
-            },
-            {
-              "value": "12",
-              "label": "12"
-            },
-            {
-              "value": "13",
-              "label": "13"
-            },
-            {
-              "value": "14",
-              "label": "14"
-            },
-            {
-              "value": "15",
-              "label": "15"
-            },
-            {
-              "value": "16",
-              "label": "16"
-            },
-            {
-              "value": "17",
-              "label": "17"
-            },
-            {
-              "value": "18",
-              "label": "18"
-            },
-            {
-              "value": "19",
-              "label": "19"
-            },
-            {
-              "value": "20",
-              "label": "20"
-            },
-            {
-              "value": "21",
-              "label": "21"
-            },
-            {
-              "value": "22",
-              "label": "22"
-            },
-            {
-              "value": "23",
-              "label": "23"
-            }
-          ],
-          "choices": [],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "RE_TEMP_MIN",
-          "type": "select",
-          "label": "재가온 요법 시작일시",
-          "context": "",
-          "section": "선택변수",
-          "readonly": false,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "time_min",
-          "suffix": "분",
-          "options": [
-            {
-              "value": "XX",
-              "label": "-"
-            },
-            {
-              "value": "00",
-              "label": "00"
-            },
-            {
-              "value": "01",
-              "label": "01"
-            },
-            {
-              "value": "02",
-              "label": "02"
-            },
-            {
-              "value": "03",
-              "label": "03"
-            },
-            {
-              "value": "04",
-              "label": "04"
-            },
-            {
-              "value": "05",
-              "label": "05"
-            },
-            {
-              "value": "06",
-              "label": "06"
-            },
-            {
-              "value": "07",
-              "label": "07"
-            },
-            {
-              "value": "08",
-              "label": "08"
-            },
-            {
-              "value": "09",
-              "label": "09"
-            },
-            {
-              "value": "10",
-              "label": "10"
-            },
-            {
-              "value": "11",
-              "label": "11"
-            },
-            {
-              "value": "12",
-              "label": "12"
-            },
-            {
-              "value": "13",
-              "label": "13"
-            },
-            {
-              "value": "14",
-              "label": "14"
-            },
-            {
-              "value": "15",
-              "label": "15"
-            },
-            {
-              "value": "16",
-              "label": "16"
-            },
-            {
-              "value": "17",
-              "label": "17"
-            },
-            {
-              "value": "18",
-              "label": "18"
-            },
-            {
-              "value": "19",
-              "label": "19"
-            },
-            {
-              "value": "20",
-              "label": "20"
-            },
-            {
-              "value": "21",
-              "label": "21"
-            },
-            {
-              "value": "22",
-              "label": "22"
-            },
-            {
-              "value": "23",
-              "label": "23"
-            },
-            {
-              "value": "24",
-              "label": "24"
-            },
-            {
-              "value": "25",
-              "label": "25"
-            },
-            {
-              "value": "26",
-              "label": "26"
-            },
-            {
-              "value": "27",
-              "label": "27"
-            },
-            {
-              "value": "28",
-              "label": "28"
-            },
-            {
-              "value": "29",
-              "label": "29"
-            },
-            {
-              "value": "30",
-              "label": "30"
-            },
-            {
-              "value": "31",
-              "label": "31"
-            },
-            {
-              "value": "32",
-              "label": "32"
-            },
-            {
-              "value": "33",
-              "label": "33"
-            },
-            {
-              "value": "34",
-              "label": "34"
-            },
-            {
-              "value": "35",
-              "label": "35"
-            },
-            {
-              "value": "36",
-              "label": "36"
-            },
-            {
-              "value": "37",
-              "label": "37"
-            },
-            {
-              "value": "38",
-              "label": "38"
-            },
-            {
-              "value": "39",
-              "label": "39"
-            },
-            {
-              "value": "40",
-              "label": "40"
-            },
-            {
-              "value": "41",
-              "label": "41"
-            },
-            {
-              "value": "42",
-              "label": "42"
-            },
-            {
-              "value": "43",
-              "label": "43"
-            },
-            {
-              "value": "44",
-              "label": "44"
-            },
-            {
-              "value": "45",
-              "label": "45"
-            },
-            {
-              "value": "46",
-              "label": "46"
-            },
-            {
-              "value": "47",
-              "label": "47"
-            },
-            {
-              "value": "48",
-              "label": "48"
-            },
-            {
-              "value": "49",
-              "label": "49"
-            },
-            {
-              "value": "50",
-              "label": "50"
-            },
-            {
-              "value": "51",
-              "label": "51"
-            },
-            {
-              "value": "52",
-              "label": "52"
-            },
-            {
-              "value": "53",
-              "label": "53"
-            },
-            {
-              "value": "54",
-              "label": "54"
-            },
-            {
-              "value": "55",
-              "label": "55"
-            },
-            {
-              "value": "56",
-              "label": "56"
-            },
-            {
-              "value": "57",
-              "label": "57"
-            },
-            {
-              "value": "58",
-              "label": "58"
-            },
-            {
-              "value": "59",
-              "label": "59"
-            }
-          ],
-          "choices": [],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "RE_TEMP_DATE_UK",
-          "type": "checkbox",
-          "label": "재가온 요법 시작일시",
-          "context": "",
-          "section": "선택변수",
-          "readonly": false,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "checkbox",
-          "suffix": "",
-          "options": [],
-          "choices": [
-            {
-              "value": "",
-              "label": "미상"
-            }
-          ],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
           "name": "NSE",
           "type": "radio",
           "label": "NSE 시행",
@@ -36325,9 +37272,48 @@
           "user_entry": false
         },
         {
+          "name": "NSE1",
+          "type": "text",
+          "label": "검사결과1",
+          "context": "NSE 시행",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "ng/mL",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "NSE1_NO",
+          "type": "checkbox",
+          "label": "검사결과1",
+          "context": "NSE 시행",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "",
+              "label": "미상"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
           "name": "NSE_DATE1",
           "type": "text",
-          "label": "시행일시",
+          "label": "시행일시1",
           "context": "NSE 시행",
           "section": "선택변수",
           "readonly": true,
@@ -36344,14 +37330,14 @@
         {
           "name": "NSE_HOUR1",
           "type": "select",
-          "label": "시행일시",
+          "label": "시행일시1",
           "context": "NSE 시행",
           "section": "선택변수",
           "readonly": false,
           "hidden": false,
           "system": false,
           "value": "",
-          "widget": "select",
+          "widget": "time_hour",
           "suffix": "시",
           "options": [
             {
@@ -36462,14 +37448,14 @@
         {
           "name": "NSE_MIN1",
           "type": "select",
-          "label": "시행일시",
+          "label": "시행일시1",
           "context": "NSE 시행",
           "section": "선택변수",
           "readonly": false,
           "hidden": false,
           "system": false,
           "value": "",
-          "widget": "select",
+          "widget": "time_min",
           "suffix": "분",
           "options": [
             {
@@ -36724,7 +37710,46 @@
         {
           "name": "NSE_DATE_UK1",
           "type": "checkbox",
-          "label": "시행일시",
+          "label": "시행일시1",
+          "context": "NSE 시행",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "checkbox",
+          "suffix": "",
+          "options": [],
+          "choices": [
+            {
+              "value": "",
+              "label": "미상"
+            }
+          ],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "NSE2",
+          "type": "text",
+          "label": "검사결과2",
+          "context": "NSE 시행",
+          "section": "선택변수",
+          "readonly": false,
+          "hidden": false,
+          "system": false,
+          "value": "",
+          "widget": "text",
+          "suffix": "ng/mL",
+          "options": [],
+          "choices": [],
+          "region": "optional",
+          "user_entry": false
+        },
+        {
+          "name": "NSE2_NO",
+          "type": "checkbox",
+          "label": "검사결과2",
           "context": "NSE 시행",
           "section": "선택변수",
           "readonly": false,
@@ -36746,7 +37771,7 @@
         {
           "name": "NSE_DATE2",
           "type": "text",
-          "label": "시행일시",
+          "label": "시행일시2",
           "context": "NSE 시행",
           "section": "선택변수",
           "readonly": true,
@@ -36763,14 +37788,14 @@
         {
           "name": "NSE_HOUR2",
           "type": "select",
-          "label": "시행일시",
+          "label": "시행일시2",
           "context": "NSE 시행",
           "section": "선택변수",
           "readonly": false,
           "hidden": false,
           "system": false,
           "value": "",
-          "widget": "select",
+          "widget": "time_hour",
           "suffix": "시",
           "options": [
             {
@@ -36881,14 +37906,14 @@
         {
           "name": "NSE_MIN2",
           "type": "select",
-          "label": "시행일시",
+          "label": "시행일시2",
           "context": "NSE 시행",
           "section": "선택변수",
           "readonly": false,
           "hidden": false,
           "system": false,
           "value": "",
-          "widget": "select",
+          "widget": "time_min",
           "suffix": "분",
           "options": [
             {
@@ -37143,7 +38168,7 @@
         {
           "name": "NSE_DATE_UK2",
           "type": "checkbox",
-          "label": "시행일시",
+          "label": "시행일시2",
           "context": "NSE 시행",
           "section": "선택변수",
           "readonly": false,
@@ -37724,8 +38749,8 @@
     {
       "key": "heart",
       "title": "7.심장검사영역",
-      "file": "new_case9.html",
-      "action": "heart_addOk.asp?G_LOCAL_PAT_ID=00-00000",
+      "file": "new_case7.html",
+      "action": "heart_addOk.asp",
       "enctype": "",
       "fields": [
         {
@@ -40931,7 +41956,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행함 ↓"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -40991,7 +42016,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행함 ↓"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -41001,7 +42026,7 @@
           "name": "CAG_RE1",
           "type": "radio",
           "label": "결과",
-          "context": "CAG",
+          "context": "CAG (24시간 이내)",
           "section": "내원 후 Troponin T peak",
           "readonly": false,
           "hidden": false,
@@ -41037,7 +42062,11 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": true,
+          "tree": {
+            "3": "CAG_RE_SS1",
+            "4": "CAG_RE_VASOS1"
+          }
         },
         {
           "name": "CAG_RE_SS1",
@@ -41071,7 +42100,8 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "CAG_RE_VASOS1",
@@ -41109,13 +42139,14 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "CAG_RE_ETC1",
           "type": "text",
           "label": "결과",
-          "context": "CAG",
+          "context": "CAG (24시간 이내)",
           "section": "내원 후 Troponin T peak",
           "readonly": false,
           "hidden": false,
@@ -41152,7 +42183,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행함 ↓"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -41162,7 +42193,7 @@
           "name": "CAG_RE2",
           "type": "radio",
           "label": "결과",
-          "context": "CAG",
+          "context": "CAG (24-72시간 이내)",
           "section": "내원 후 Troponin T peak",
           "readonly": false,
           "hidden": false,
@@ -41198,7 +42229,11 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": true,
+          "tree": {
+            "3": "CAG_RE_SS2",
+            "4": "CAG_RE_VASOS2"
+          }
         },
         {
           "name": "CAG_RE_SS2",
@@ -41232,7 +42267,8 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "CAG_RE_VASOS2",
@@ -41270,13 +42306,14 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "CAG_RE_ETC2",
           "type": "text",
           "label": "결과",
-          "context": "CAG",
+          "context": "CAG (24-72시간 이내)",
           "section": "내원 후 Troponin T peak",
           "readonly": false,
           "hidden": false,
@@ -41313,7 +42350,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행함 ↓"
+              "label": "미상"
             }
           ],
           "region": "core",
@@ -41323,7 +42360,7 @@
           "name": "CAG_RE3",
           "type": "radio",
           "label": "결과",
-          "context": "CAG",
+          "context": "CAG (7일-퇴원 전)",
           "section": "내원 후 Troponin T peak",
           "readonly": false,
           "hidden": false,
@@ -41359,7 +42396,11 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": true,
+          "tree": {
+            "3": "CAG_RE_SS3",
+            "4": "CAG_RE_VASOS3"
+          }
         },
         {
           "name": "CAG_RE_SS3",
@@ -41393,7 +42434,8 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "CAG_RE_VASOS3",
@@ -41431,13 +42473,14 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "CAG_RE_ETC3",
           "type": "text",
           "label": "결과",
-          "context": "CAG",
+          "context": "CAG (7일-퇴원 전)",
           "section": "내원 후 Troponin T peak",
           "readonly": false,
           "hidden": false,
@@ -43262,7 +44305,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 있음 ↓"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -44410,7 +45453,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"J_WAVE1\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">II&nbsp; <INPUT type=\"radio\" name=\"J_WAVE1\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">III&nbsp; <INPUT type=\"radio\" name=\"J_WAVE1\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">aVF&nbsp; <INPUT type=\"radio\" name=\"J_WAVE1\" value=\"4\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V1&nbsp; <INPUT type=\"radio\" name=\"J_WAVE1\" value=\"5\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V2&nbsp; <INPUT type=\"radio\" name=\"J_WAVE1\" value=\"6\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V3&nbsp;<br> <INPUT type=\"radio\" name=\"J_WAVE1\" value=\"7\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V4&nbsp; <INPUT type=\"radio\" name=\"J_WAVE1\" value=\"8\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V5&nbsp; <INPUT type=\"radio\" name=\"J_WAVE1\" value=\"9\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V6&nbsp; <INPUT type=\"radio\" name=\"J_WAVE1\" value=\"10\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"J_WAVE1\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -44498,7 +45541,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"BUNDLE_BB1\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"BUNDLE_BB1\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">RBBB&nbsp; <INPUT type=\"radio\" name=\"BUNDLE_BB1\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">LBBB&nbsp; <INPUT type=\"radio\" name=\"BUNDLE_BB1\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -44579,7 +45622,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행함 ↓"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -45111,7 +46154,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"J_WAVE2\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">II&nbsp; <INPUT type=\"radio\" name=\"J_WAVE2\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">III&nbsp; <INPUT type=\"radio\" name=\"J_WAVE2\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">aVF&nbsp; <INPUT type=\"radio\" name=\"J_WAVE2\" value=\"4\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V1&nbsp; <INPUT type=\"radio\" name=\"J_WAVE2\" value=\"5\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V2&nbsp; <INPUT type=\"radio\" name=\"J_WAVE2\" value=\"6\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V3&nbsp;<br> <INPUT type=\"radio\" name=\"J_WAVE2\" value=\"7\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V4&nbsp; <INPUT type=\"radio\" name=\"J_WAVE2\" value=\"8\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V5&nbsp; <INPUT type=\"radio\" name=\"J_WAVE2\" value=\"9\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V6&nbsp; <INPUT type=\"radio\" name=\"J_WAVE2\" value=\"10\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"J_WAVE2\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -45199,7 +46242,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"BUNDLE_BB2\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"BUNDLE_BB2\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">RBBB&nbsp; <INPUT type=\"radio\" name=\"BUNDLE_BB2\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">LBBB&nbsp; <INPUT type=\"radio\" name=\"BUNDLE_BB2\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -45280,7 +46323,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행함 ↓"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -45812,7 +46855,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"J_WAVE3\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">II&nbsp; <INPUT type=\"radio\" name=\"J_WAVE3\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">III&nbsp; <INPUT type=\"radio\" name=\"J_WAVE3\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">aVF&nbsp; <INPUT type=\"radio\" name=\"J_WAVE3\" value=\"4\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V1&nbsp; <INPUT type=\"radio\" name=\"J_WAVE3\" value=\"5\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V2&nbsp; <INPUT type=\"radio\" name=\"J_WAVE3\" value=\"6\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V3&nbsp;<br> <INPUT type=\"radio\" name=\"J_WAVE3\" value=\"7\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V4&nbsp; <INPUT type=\"radio\" name=\"J_WAVE3\" value=\"8\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V5&nbsp; <INPUT type=\"radio\" name=\"J_WAVE3\" value=\"9\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V6&nbsp; <INPUT type=\"radio\" name=\"J_WAVE3\" value=\"10\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"J_WAVE3\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -45900,7 +46943,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"BUNDLE_BB3\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"BUNDLE_BB3\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">RBBB&nbsp; <INPUT type=\"radio\" name=\"BUNDLE_BB3\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">LBBB&nbsp; <INPUT type=\"radio\" name=\"BUNDLE_BB3\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -46671,7 +47714,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행함 ↓"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -47391,7 +48434,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행함 ↓"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -48111,7 +49154,7 @@
             },
             {
               "value": "99",
-              "label": "미상 if 시행함 ↓"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -48864,7 +49907,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"LQT_J_WAVE\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">II&nbsp; <INPUT type=\"radio\" name=\"LQT_J_WAVE\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">III&nbsp; <INPUT type=\"radio\" name=\"LQT_J_WAVE\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">aVF&nbsp; <INPUT type=\"radio\" name=\"LQT_J_WAVE\" value=\"4\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V1&nbsp; <INPUT type=\"radio\" name=\"LQT_J_WAVE\" value=\"5\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V2&nbsp; <INPUT type=\"radio\" name=\"LQT_J_WAVE\" value=\"6\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V3&nbsp;<br> <INPUT type=\"radio\" name=\"LQT_J_WAVE\" value=\"7\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V4&nbsp; <INPUT type=\"radio\" name=\"LQT_J_WAVE\" value=\"8\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V5&nbsp; <INPUT type=\"radio\" name=\"LQT_J_WAVE\" value=\"9\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V6&nbsp; <INPUT type=\"radio\" name=\"LQT_J_WAVE\" value=\"10\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"LQT_J_WAVE\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -48952,7 +49995,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"LQT_BUNDLE_BB\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"LQT_BUNDLE_BB\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">RBBB&nbsp; <INPUT type=\"radio\" name=\"LQT_BUNDLE_BB\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">LBBB&nbsp; <INPUT type=\"radio\" name=\"LQT_BUNDLE_BB\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -49557,7 +50600,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"BRU_J_WAVE\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">II&nbsp; <INPUT type=\"radio\" name=\"BRU_J_WAVE\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">III&nbsp; <INPUT type=\"radio\" name=\"BRU_J_WAVE\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">aVF&nbsp; <INPUT type=\"radio\" name=\"BRU_J_WAVE\" value=\"4\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V1&nbsp; <INPUT type=\"radio\" name=\"BRU_J_WAVE\" value=\"5\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V2&nbsp; <INPUT type=\"radio\" name=\"BRU_J_WAVE\" value=\"6\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V3&nbsp;<br> <INPUT type=\"radio\" name=\"BRU_J_WAVE\" value=\"7\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V4&nbsp; <INPUT type=\"radio\" name=\"BRU_J_WAVE\" value=\"8\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V5&nbsp; <INPUT type=\"radio\" name=\"BRU_J_WAVE\" value=\"9\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V6&nbsp; <INPUT type=\"radio\" name=\"BRU_J_WAVE\" value=\"10\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"BRU_J_WAVE\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -49645,7 +50688,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"BRU_BUNDLE_BB\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"BRU_BUNDLE_BB\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">RBBB&nbsp; <INPUT type=\"radio\" name=\"BRU_BUNDLE_BB\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">LBBB&nbsp; <INPUT type=\"radio\" name=\"BRU_BUNDLE_BB\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -50250,7 +51293,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"JWA_J_WAVE\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">II&nbsp; <INPUT type=\"radio\" name=\"JWA_J_WAVE\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">III&nbsp; <INPUT type=\"radio\" name=\"JWA_J_WAVE\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">aVF&nbsp; <INPUT type=\"radio\" name=\"JWA_J_WAVE\" value=\"4\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V1&nbsp; <INPUT type=\"radio\" name=\"JWA_J_WAVE\" value=\"5\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V2&nbsp; <INPUT type=\"radio\" name=\"JWA_J_WAVE\" value=\"6\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V3&nbsp;<br> <INPUT type=\"radio\" name=\"JWA_J_WAVE\" value=\"7\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V4&nbsp; <INPUT type=\"radio\" name=\"JWA_J_WAVE\" value=\"8\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V5&nbsp; <INPUT type=\"radio\" name=\"JWA_J_WAVE\" value=\"9\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V6&nbsp; <INPUT type=\"radio\" name=\"JWA_J_WAVE\" value=\"10\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"JWA_J_WAVE\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -50338,7 +51381,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"JWA_BUNDLE_BB\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"JWA_BUNDLE_BB\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">RBBB&nbsp; <INPUT type=\"radio\" name=\"JWA_BUNDLE_BB\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">LBBB&nbsp; <INPUT type=\"radio\" name=\"JWA_BUNDLE_BB\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -50943,7 +51986,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"IVF_J_WAVE\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">II&nbsp; <INPUT type=\"radio\" name=\"IVF_J_WAVE\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">III&nbsp; <INPUT type=\"radio\" name=\"IVF_J_WAVE\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">aVF&nbsp; <INPUT type=\"radio\" name=\"IVF_J_WAVE\" value=\"4\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V1&nbsp; <INPUT type=\"radio\" name=\"IVF_J_WAVE\" value=\"5\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V2&nbsp; <INPUT type=\"radio\" name=\"IVF_J_WAVE\" value=\"6\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V3&nbsp;<br> <INPUT type=\"radio\" name=\"IVF_J_WAVE\" value=\"7\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V4&nbsp; <INPUT type=\"radio\" name=\"IVF_J_WAVE\" value=\"8\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V5&nbsp; <INPUT type=\"radio\" name=\"IVF_J_WAVE\" value=\"9\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V6&nbsp; <INPUT type=\"radio\" name=\"IVF_J_WAVE\" value=\"10\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"IVF_J_WAVE\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -51031,7 +52074,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"IVF_BUNDLE_BB\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"IVF_BUNDLE_BB\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">RBBB&nbsp; <INPUT type=\"radio\" name=\"IVF_BUNDLE_BB\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">LBBB&nbsp; <INPUT type=\"radio\" name=\"IVF_BUNDLE_BB\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -51636,7 +52679,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"CPVT_J_WAVE\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">II&nbsp; <INPUT type=\"radio\" name=\"CPVT_J_WAVE\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">III&nbsp; <INPUT type=\"radio\" name=\"CPVT_J_WAVE\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">aVF&nbsp; <INPUT type=\"radio\" name=\"CPVT_J_WAVE\" value=\"4\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V1&nbsp; <INPUT type=\"radio\" name=\"CPVT_J_WAVE\" value=\"5\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V2&nbsp; <INPUT type=\"radio\" name=\"CPVT_J_WAVE\" value=\"6\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V3&nbsp;<br> <INPUT type=\"radio\" name=\"CPVT_J_WAVE\" value=\"7\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V4&nbsp; <INPUT type=\"radio\" name=\"CPVT_J_WAVE\" value=\"8\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V5&nbsp; <INPUT type=\"radio\" name=\"CPVT_J_WAVE\" value=\"9\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">V6&nbsp; <INPUT type=\"radio\" name=\"CPVT_J_WAVE\" value=\"10\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"CPVT_J_WAVE\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -51724,7 +52767,7 @@
           "choices": [
             {
               "value": "",
-              "label": "미상 <INPUT type=\"radio\" name=\"CPVT_BUNDLE_BB\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">없음&nbsp; <INPUT type=\"radio\" name=\"CPVT_BUNDLE_BB\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">RBBB&nbsp; <INPUT type=\"radio\" name=\"CPVT_BUNDLE_BB\" value=\"3\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">LBBB&nbsp; <INPUT type=\"radio\" name=\"CPVT_BUNDLE_BB\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp;"
+              "label": "미상"
             }
           ],
           "region": "optional",
@@ -51847,8 +52890,8 @@
     {
       "key": "y_child",
       "title": "8.소아소생술영역",
-      "file": "new_case10.html",
-      "action": "y_child_addOk.asp?G_LOCAL_PAT_ID=00-00000",
+      "file": "new_case8.html",
+      "action": "y_child_addOk.asp",
       "enctype": "",
       "fields": [
         {
@@ -52276,31 +53319,35 @@
           "choices": [
             {
               "value": "1",
-              "label": "Medical"
+              "label": "Medical (내과적원인)"
             },
             {
               "value": "2",
-              "label": "Traumatic"
+              "label": "Traumatic (외상성)"
             },
             {
               "value": "3",
-              "label": "Drug Overdose"
+              "label": "Drug Overdose (약물중독)"
             },
             {
               "value": "4",
-              "label": "Drowning"
+              "label": "Drowning (익수)"
             },
             {
               "value": "5",
-              "label": "Electrocution"
+              "label": "Electrocution (전기감전)"
             },
             {
               "value": "6",
-              "label": "Asphyxial"
+              "label": "Asphyxial (질식)"
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": true,
+          "tree": {
+            "1": "ARREST_CA_MEDI",
+            "6": "ARREST_CA_ASPH"
+          }
         },
         {
           "name": "ARREST_CA_MEDI",
@@ -52330,7 +53377,12 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree": {
+            "1": "ARREST_CA_MEDI_PC",
+            "3": "ARREST_CA_MEDI_OME"
+          },
+          "tree_child": true
         },
         {
           "name": "ARREST_CA_MEDI_PC",
@@ -52356,7 +53408,8 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "ARREST_CA_MEDI_OME",
@@ -52390,7 +53443,8 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "ARREST_CA_ASPH",
@@ -52420,14 +53474,15 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "Y_ER_HOSP_NM",
           "type": "text",
           "label": "등록병원 응급실에서 전원된 경우 병원명",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -52436,15 +53491,15 @@
           "suffix": "",
           "options": [],
           "choices": [],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "Y_OUT_PCPC",
           "type": "radio",
           "label": "병원 퇴원시 PCPC",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -52482,15 +53537,15 @@
               "label": "미상"
             }
           ],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "Y_6M_PCPC",
           "type": "radio",
-          "label": "6개월 후 PCP",
+          "label": "6개월 후 PCPC",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -52528,15 +53583,15 @@
               "label": "미상"
             }
           ],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "Y_12M_LIVE",
           "type": "radio",
           "label": "12개월 후 생존",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -52558,15 +53613,15 @@
               "label": "미상(연락두절)"
             }
           ],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "Y_12M_PCPC",
           "type": "radio",
-          "label": "12개월 후 PCP",
+          "label": "12개월 후 PCPC",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -52604,15 +53659,15 @@
               "label": "미상"
             }
           ],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "Y_DEATH_DATE",
           "type": "text",
           "label": "사망일시",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": true,
           "hidden": false,
           "system": false,
@@ -52621,15 +53676,15 @@
           "suffix": "",
           "options": [],
           "choices": [],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "Y_DEATH_HOUR",
           "type": "select",
           "label": "사망일시",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -52739,15 +53794,15 @@
             }
           ],
           "choices": [],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "Y_DEATH_MIN",
           "type": "select",
           "label": "사망일시",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -53001,15 +54056,15 @@
             }
           ],
           "choices": [],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "Y_DEATH_DATE_UK",
           "type": "checkbox",
           "label": "사망일시",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -53023,15 +54078,15 @@
               "label": "미상"
             }
           ],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "Y_PRE_BABY",
           "type": "radio",
           "label": "미숙아 출생여부",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -53050,18 +54105,18 @@
             },
             {
               "value": "99",
-              "label": "미상 <TABLE width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bordercolor=\"#CECECE\" style=\"border-collapse:collapse;\"> <tr> <TD height=\"30\" colspan=\"2\" class=\"tdblack\"> <INPUT type=\"radio\" name=\"Y_PRE_BABY\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);setY_PRE_BABY(this.form);\" style=\"border:0px;\">예&nbsp; <INPUT type=\"radio\" name=\"Y_PRE_BABY\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);setY_PRE_BABY(this.form);\" style=\"border:0px;\">아니오&nbsp; <INPUT type=\"radio\" name=\"Y_PRE_BABY\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);setY_PRE_BABY(this.form);\" style=\"border:0px;\">미상&nbsp; </TD> </tr> <tr><td height=\"1\" colspan=\"2\" bgcolor=\"#6BA68C\"></td></tr> <tr> <td width=\"35%\" height=\"30\" class=\"tdlb\" style=\"border-right-style: groove; border-right-width:1px\"> 출생 후 신생하중환자실 입원 </td> <TD class=\"tdblack\" > <INPUT type=\"radio\" name=\"Y_AD_BABY\" value=\"1\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">예&nbsp; <INPUT type=\"radio\" name=\"Y_AD_BABY\" value=\"2\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">아니오&nbsp; <INPUT type=\"radio\" name=\"Y_AD_BABY\" value=\"99\" onMouseDown=\"setRadioChk(this);\" onClick=\"setRadio_Reset(this);\" style=\"border:0px;\">미상&nbsp; </TD> </tr> </table>"
+              "label": "미상"
             }
           ],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "BIRTH_ICU",
           "type": "radio",
           "label": "출생 후 중환자실 입원여부",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -53083,15 +54138,15 @@
               "label": "미상"
             }
           ],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "INDEPEND",
           "type": "radio",
           "label": "소아 심정지 전 연령에 맞는 독립적인 생활 가능 여부",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -53113,15 +54168,15 @@
               "label": "미상"
             }
           ],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "MEDI_HIST",
           "type": "radio",
           "label": "소아 심정지 전 과거력",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -53159,15 +54214,15 @@
               "label": "기타"
             }
           ],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "MEDI_HIST_ETC",
           "type": "text",
           "label": "소아 심정지 전 과거력",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -53176,15 +54231,15 @@
           "suffix": "",
           "options": [],
           "choices": [],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "Y_BASE_PCPC",
           "type": "radio",
           "label": "기저 신경학적상태 PCPC",
           "context": "",
-          "section": "선택변수",
+          "section": "핵심변수",
           "readonly": false,
           "hidden": false,
           "system": false,
@@ -53222,8 +54277,8 @@
               "label": "미상"
             }
           ],
-          "region": "optional",
-          "user_entry": false
+          "region": "core",
+          "user_entry": true
         },
         {
           "name": "WIT_KIND",
@@ -53261,7 +54316,10 @@
             }
           ],
           "region": "optional",
-          "user_entry": false
+          "user_entry": false,
+          "tree": {
+            "1": "WIT_KIND_FA"
+          }
         },
         {
           "name": "WIT_KIND_FA",
@@ -53295,7 +54353,8 @@
             }
           ],
           "region": "optional",
-          "user_entry": false
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "ARREST_TREAT",
@@ -53595,7 +54654,7 @@
         {
           "name": "CPR_LEADER_PALS",
           "type": "radio",
-          "label": "심폐소생술 리더 PALS 이수여부",
+          "label": "심폐소생술 리더 PALS/KPALS 이수여부",
           "context": "",
           "section": "선택변수",
           "readonly": false,
@@ -53646,7 +54705,7 @@
             },
             {
               "value": "3",
-              "label": "도구 활용 (종류 :"
+              "label": "도구 활용"
             },
             {
               "value": "99",
@@ -53654,29 +54713,15 @@
             }
           ],
           "region": "optional",
-          "user_entry": false
+          "user_entry": false,
+          "tree": {
+            "3": "Y_WT_METHOD_TYPE_CAT"
+          }
         },
         {
-          "name": "WEIGHT_KIND_SPEC",
-          "type": "text",
-          "label": "체중 추정방법",
-          "context": "",
-          "section": "선택변수",
-          "readonly": false,
-          "hidden": false,
-          "system": false,
-          "value": "",
-          "widget": "text",
-          "suffix": "",
-          "options": [],
-          "choices": [],
-          "region": "optional",
-          "user_entry": false
-        },
-        {
-          "name": "F_IV",
+          "name": "Y_WT_METHOD_TYPE_CAT",
           "type": "radio",
-          "label": "첫 정맥로 확보 종류",
+          "label": "체중 추정방법",
           "context": "",
           "section": "선택변수",
           "readonly": false,
@@ -53689,39 +54734,28 @@
           "choices": [
             {
               "value": "1",
-              "label": "IV"
+              "label": "한국형소아소생술테입"
             },
             {
               "value": "2",
-              "label": "IO"
+              "label": "브로슬로우테입"
             },
             {
               "value": "3",
-              "label": "C-line (denovo)"
-            },
-            {
-              "value": "4",
-              "label": "미시행"
-            },
-            {
-              "value": "88",
               "label": "기타"
-            },
-            {
-              "value": "99",
-              "label": "미상"
             }
           ],
           "region": "optional",
-          "user_entry": false
+          "user_entry": false,
+          "tree_child": true
         },
         {
-          "name": "F_IV_ETC",
+          "name": "WEIGHT_KIND_SPEC",
           "type": "text",
-          "label": "첫 정맥로 확보 종류",
+          "label": "체중 추정방법",
           "context": "",
           "section": "선택변수",
-          "readonly": false,
+          "readonly": true,
           "hidden": false,
           "system": false,
           "value": "",
@@ -54332,7 +55366,7 @@
     {
       "key": "comment",
       "title": "Comment Log",
-      "file": "new_case11.html",
+      "file": "new_case9.html",
       "action": "patient_comment_addOk.asp",
       "enctype": "",
       "fields": [

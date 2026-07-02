@@ -20,15 +20,38 @@ import json
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.formatting.rule import FormulaRule
 from openpyxl.utils import get_column_letter
+from openpyxl.comments import Comment
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(BASE, "KOCARC_입력양식.xlsx")
+
+# 항목별 도움말(셀 메모). 내용은 field_notes.py 에서 사용자가 직접 채운다.
+try:
+    from field_notes import NOTES as FIELD_NOTES
+except ImportError:
+    FIELD_NOTES = {}
 
 # 같은 질문의 단일-선택 체크박스(부/모/형제 ...)들을 드롭다운 1칸으로 묶을 때,
 # 2행(필드명 줄)에 적는 마커. 봇이 이 마커를 보고 라벨->필드명 매칭을 처리한다.
 # kocarc_bot.GROUP_PREFIX 와 반드시 동일해야 함.
 GROUP_PREFIX = "@GROUP:"
+
+# 조건부 라디오→라디오 트리(부모 선택에 따라 자식 라디오 활성)를 드롭다운 1칸으로
+# 합칠 때 2행에 적는 마커. kocarc_bot.TREE_PREFIX 와 반드시 동일해야 함.
+# 형식: @TREE:부모필드|부모값=자식필드;부모값=자식필드
+TREE_PREFIX = "@TREE:"
+# 잎(드롭다운 항목) 라벨 구분자: "부모라벨 - 자식라벨"
+TREE_SEP = " - "
+
+# 날짜+시+분 3칸을 1칸으로 합칠 때 2행에 적는 마커 (봇이 파싱해 3필드로 분해).
+# 형식: @DT:날짜필드,시필드,분필드
+DT_PREFIX = "@DT:"
+
+# 값칸 + '미상'(_UK) 체크박스를 1칸으로 합칠 때 2행에 적는 마커.
+# 값칸에 '미상'이라 적으면 봇이 체크박스를 누른다. 형식: @VUK:값필드,미상필드
+VUK_PREFIX = "@VUK:"
 
 
 def resource_path(name):
@@ -70,18 +93,40 @@ def load_schema(schema_path=None):
 NAME_UNIT = [("_YY", "년"), ("_MM", "월"), ("_DD", "일"),
              ("_HOUR", "시"), ("_MIN", "분"), ("_DATE", "날짜")]
 SHORT_UNITS = ("년", "월", "일", "시", "분", "세", "초")
+# 라벨에 붙일 측정 단위 (용량/길이/무게 등) — 예: '에피네프린 총 투여 용량 (mg)'
+MEASURE_UNITS = ("mg", "IU", "mL", "ml", "L", "g", "kg", "cc", "mmHg", "cm", "mm", "%")
+
+
+# 이 단어가 든 구획명은 컬럼 라벨 접두어로 붙이지 않는다(검사 패널처럼 44칸이 다 길어짐).
+NO_PREFIX_CONTEXTS_KW = ("혈액검사",)
 
 
 def with_context(label, ctx):
-    """질병명/구획 같은 상위 컨텍스트를 라벨 앞에 붙인다. (예: '고혈압 - 치료')"""
+    """질병명/구획 같은 상위 컨텍스트를 라벨 앞에 붙인다. (예: '고혈압 - 치료')
+    단, 검사 패널 등 너무 긴 구획명은 접두어로 붙이지 않는다(라벨만 사용)."""
     ctx = (ctx or "").strip()
-    if ctx and ctx not in label:
-        return f"{ctx} - {label}"
-    return label
+    if not ctx or ctx in label or any(kw in ctx for kw in NO_PREFIX_CONTEXTS_KW):
+        return label
+    return f"{ctx} - {label}"
+
+
+# 자동 라벨이 헷갈리는 특정 필드의 표시 라벨 직접 지정.
+LABEL_OVERRIDES = {
+    "HOSP_RESULT_OUT": "병원치료결과 (퇴원처)",  # 자택/타병원전원/호스피스/요양시설
+    "EPINE_TOT": "에피네프린 용량 (응급실 CPR 시행 환자)",
+    "EPINE_ROSC": "에피네프린 용량 (Sustained ROSC 환자)",
+}
+
+# 배타적(택1) 체크박스 그룹의 group_prefix — 복수선택 안내 대신 '택1' 안내를 붙인다.
+SINGLE_SELECT_GROUPS = {"EPINE"}  # 에피네프린 미상/미사용 (사이트에서 하나 고르면 나머지 비활성)
+# 그룹 컬럼 라벨 직접 지정 (group_prefix 기준)
+GROUP_LABEL_OVERRIDES = {"EPINE": "에피네프린 용량 (미상/미사용)"}
 
 
 def display_label(f):
     """사람이 읽기 쉬운 컬럼 라벨(상위 컨텍스트 포함)."""
+    if f["name"] in LABEL_OVERRIDES:
+        return LABEL_OVERRIDES[f["name"]]
     return with_context(_display_core(f), f.get("context"))
 
 
@@ -101,14 +146,16 @@ def _display_core(f):
         lab = (f["choices"][0].get("label") or "").strip()
         if lab:
             return f"{base} ({lab})"
-    # 3) 단위/미상 텍스트칸
-    if up.endswith("_UNIT"):
+    # 3) 단위/미상/기타 텍스트칸 (뒤에 번호가 붙어도: _ETC1 등)
+    if re.search(r"_UNIT\d*$", up):
         return f"{base} (단위)"
-    if up.endswith("_UK"):
+    if re.search(r"_UK\d*$", up):
         return f"{base} (미상)"
-    # 4) 짧은 꼬리표(시/분/년/월/일/세)
+    if re.search(r"_ETC\d*$", up):
+        return f"{base} (기타)"
+    # 4) 짧은 꼬리표(시/분/년/월/일/세) + 측정 단위(mg/IU 등)
     s = (f.get("suffix") or "").strip()
-    if s in SHORT_UNITS:
+    if s in SHORT_UNITS or s in MEASURE_UNITS:
         return f"{base} ({s})"
     return base
 
@@ -129,7 +176,54 @@ def labeled_fields(fields):
     return out
 
 
-def dv_for_field(f):
+class ListSheet:
+    """드롭다운 목록 저장용 시트.
+    인라인 목록("a,b,c")은 라벨에 콤마/따옴표가 있거나 255자를 넘으면 못 쓴다.
+    그런 경우 라벨을 이 시트의 한 열에 세로로 적고, 그 범위를 참조하는 드롭다운을 만든다.
+    사용자가 나중에 항목을 고칠 수 있게 보이는 시트로 두고, 1행에 어떤 항목인지 제목을 단다."""
+    NAME = "_목록"
+
+    def __init__(self, wb):
+        self.ws = wb.create_sheet(self.NAME)
+        self.ws.cell(row=1, column=1)  # 시트 존재 보장
+        self.ws.freeze_panes = "A2"
+        self.col = 0
+
+    def add_range(self, labels, title=None):
+        self.col += 1
+        letter = get_column_letter(self.col)
+        h = self.ws.cell(row=1, column=self.col, value=title or "목록")
+        h.font = Font(bold=True, size=9, color="666666")
+        for i, lab in enumerate(labels, start=1):
+            self.ws.cell(row=i + 1, column=self.col, value=lab)
+        self.ws.column_dimensions[letter].width = 24
+        # 1행은 제목, 실제 항목은 2행부터
+        return f"'{self.NAME}'!${letter}$2:${letter}${1 + len(labels)}"
+
+
+def make_dv(list_ctx, labels, show_error=False, error_text=None,
+            error_title=None, title=None):
+    """라벨 목록 → 드롭다운. 인라인이 안전하면 인라인, 아니면(콤마/따옴표/255초과)
+    _목록 시트 범위 참조로 대체(list_ctx 없으면 None)."""
+    labels = [x for x in labels if x]
+    if not labels:
+        return None
+    inline = '"' + ",".join(labels) + '"'
+    if not any(("," in x or '"' in x) for x in labels) and len(inline) <= 255:
+        formula = inline
+    elif list_ctx is not None:
+        formula = list_ctx.add_range(labels, title)
+    else:
+        return None
+    dv = DataValidation(type="list", formula1=formula,
+                        allow_blank=True, showErrorMessage=show_error)
+    if show_error and error_text:
+        dv.error = error_text
+        dv.errorTitle = error_title
+    return dv
+
+
+def dv_for_field(f, list_ctx=None, title=None):
     """선택지가 적은 코드필드에 한해 드롭다운(라벨 기준) 생성."""
     labels = []
     if f["type"] in ("radio", "checkbox"):
@@ -141,15 +235,9 @@ def dv_for_field(f):
                   and o["label"] not in ("Y", "M", "D", "-")]
     if not labels or len(labels) > 20:
         return None
-    if any("," in x or '"' in x for x in labels):
-        return None
-    formula = '"' + ",".join(labels) + '"'
-    if len(formula) > 255:
-        return None
-    dv = DataValidation(type="list", formula1=formula, allow_blank=True)
-    dv.error = "코드북의 값 중에서 선택하세요"
-    dv.errorTitle = "값 확인"
-    return dv
+    return make_dv(list_ctx, labels, show_error=True,
+                   error_text="코드북의 값 중에서 선택하세요", error_title="값 확인",
+                   title=title or f["name"])
 
 
 def is_single_cb(f):
@@ -176,13 +264,22 @@ def grouped_columns(fields):
     while i < len(uf):
         f = uf[i]
         if is_single_cb(f):
-            j = i
-            while (j < len(uf) and is_single_cb(uf[j])
-                   and uf[j]["label"] == f["label"]
-                   and group_prefix(uf[j]["name"]) == group_prefix(f["name"])):
+            lab, pre = f["label"], group_prefix(f["name"])
+            members, deferred, j = [], [], i
+            while j < len(uf):
+                g = uf[j]
+                same = (g.get("label") == lab and group_prefix(g["name"]) == pre)
+                if is_single_cb(g) and same:
+                    members.append(g)        # 같은 질문의 단일 체크박스 → 그룹 멤버
+                elif same:
+                    deferred.append(g)        # 같은 질문의 자유입력(_ETC 등) → 그룹 뒤로
+                else:
+                    break                     # 다른 질문이면 그룹 종료
                 j += 1
-            if j - i >= 2:
-                cols.append(("group", f.get("label") or f["name"], uf[i:j]))
+            if len(members) >= 2:
+                cols.append(("group", lab or f["name"], members))
+                for d in deferred:            # 중간에 낀 _ETC 등은 그룹 바로 뒤 컬럼으로
+                    cols.append(("single", d))
                 i = j
                 continue
         cols.append(("single", f))
@@ -190,54 +287,227 @@ def grouped_columns(fields):
     return cols
 
 
-def dv_for_group(members):
+def dv_for_group(members, list_ctx=None, title=None):
     """그룹 드롭다운: 멤버 라벨(부/모/...) 목록. 드롭다운을 주되,
     복수선택(쉼표 입력)을 막지 않도록 검증 오류는 띄우지 않는다."""
     labels = [(m["choices"][0].get("label") or "").strip() for m in members]
     labels = [x for x in labels if x]
     if not labels or len(labels) > 30:
         return None
-    if any("," in x or '"' in x for x in labels):
-        return None
-    formula = '"' + ",".join(labels) + '"'
-    if len(formula) > 255:
-        return None
-    dv = DataValidation(type="list", formula1=formula,
-                        allow_blank=True, showErrorMessage=False)
-    return dv
+    return make_dv(list_ctx, labels, show_error=False, title=title)
 
 
-def write_columns(ws, fields, n_rows):
-    """area/patient 시트 공통: B열부터 컬럼(단일/그룹)을 쓰고 환자키를 채운다.
-    반환: 입력 칸(컬럼) 개수."""
+def _leaf_paths(byname, field):
+    """필드의 드롭다운 잎 경로들. 자식이 또 부모(tree)면 손자까지 재귀.
+    각 잎 = 라벨 리스트(예: ['Medical (내과적원인)', 'Presumed Cardiac', 'Arrythmia/other'])."""
+    tree = field.get("tree") or {}
+    out = []
+    for c in field.get("choices", []):
+        pv, plab = c.get("value", ""), (c.get("label") or "").strip()
+        if not plab:
+            continue
+        child = byname.get(tree.get(pv))
+        if child:
+            for sub in _leaf_paths(byname, child):
+                out.append([plab] + sub)
+        else:
+            out.append([plab])
+    return out
+
+
+def tree_leaves(byname, parent):
+    """트리 부모 필드 → (드롭다운 잎 라벨 목록, @TREE 마커 문자열).
+    잎은 '부모 - 자식(- 손자)' 로 펼침. 마커는 직속 자식만 인코딩(부모값=자식필드);
+    더 깊은 단계는 봇이 schema.json 의 자식필드 tree 로 복원한다.
+    ponytail: 잎 라벨에 ' - '가 든 선택지가 생기면 봇 분리가 깨짐(현 스키마엔 없음)."""
+    tree = parent.get("tree") or {}
+    leaves = [TREE_SEP.join(path) for path in _leaf_paths(byname, parent)]
+    marker = TREE_PREFIX + parent["name"] + "|" + ";".join(
+        f"{pv}={cn}" for pv, cn in tree.items())
+    return leaves, marker
+
+
+def dv_from_labels(labels, list_ctx=None, title=None):
+    """라벨 목록 → 드롭다운(검증 오류 없음: 통합값이라 자유 확인)."""
+    labels = [x for x in labels if x]
+    if not labels or len(labels) > 40:
+        return None
+    return make_dv(list_ctx, labels, show_error=False, title=title)
+
+
+def _is_date(f):
+    return f["widget"] == "date" or f["name"].upper().endswith("_DATE")
+
+
+def _is_hour(f):
+    return f["widget"] == "time_hour" or f["name"].upper().endswith("_HOUR")
+
+
+def _is_min(f):
+    return f["widget"] == "time_min" or f["name"].upper().endswith("_MIN")
+
+
+def merge_datetime(specs):
+    """연속된 (날짜, 시, 분) 단일칸 3개를 하나의 datetime 칸으로 합친다.
+    이름 접두어가 같아야만 합쳐 오짝을 막는다. (날짜 이름은 _DATE 로 끝남)
+    바로 뒤에 같은 접두어의 '미상'(_UK) 단일 체크박스가 있으면 같은 칸에 흡수해
+    ("datetime", 날짜, 시, 분, 미상) 5-튜플로 만든다(엑셀칸에 '미상' 입력 흡수)."""
+    out, i = [], 0
+    while i < len(specs):
+        s = specs[i]
+        # 날짜 이름은 _DATE 또는 _DATE+번호(SSEP_DATE1)로 끝남 → 접두어(pre) 추출
+        m = (re.match(r"^(.*)_DATE\d*$", s[1]["name"], re.I)
+             if (s[0] == "single" and _is_date(s[1])) else None)
+        if (m and i + 2 < len(specs)
+                and specs[i + 1][0] == "single" and _is_hour(specs[i + 1][1])
+                and specs[i + 2][0] == "single" and _is_min(specs[i + 2][1])):
+            pre = m.group(1)
+            if (specs[i + 1][1]["name"].startswith(pre)
+                    and specs[i + 2][1]["name"].startswith(pre)):
+                merged = ["datetime", s[1], specs[i + 1][1], specs[i + 2][1]]
+                step = 3
+                nxt = specs[i + 3] if i + 3 < len(specs) else None
+                # 미상 체크박스: _UK 또는 _UK+번호(SSEP_DATE_UK1)
+                if (nxt and nxt[0] == "single" and is_single_cb(nxt[1])
+                        and re.search(r"_UK\d*$", nxt[1]["name"], re.I)
+                        and nxt[1]["name"].startswith(pre)):
+                    merged.append(nxt[1])  # 미상 체크박스 흡수
+                    step = 4
+                out.append(tuple(merged))
+                i += step
+                continue
+        out.append(s)
+        i += 1
+    return out
+
+
+# 값칸 뒤 '미측정/미상' 플래그 체크박스로 인정할 안전 키워드(그 라벨이 이 안에 있어야 합침).
+VALUK_KEYWORDS = {"ND", "미상", "미측정", "모름"}
+
+# 이름 규칙(_UK/_YN)으로 못 잡는 값칸+플래그 수동 페어링. {값필드: 플래그체크박스필드}
+MANUAL_VALUK = {
+    "DEFIB_CNT": "DEFIB_UK",  # 제세동 횟수 + 미상 (이름이 DEFIB_CNT_UK 가 아님)
+}
+
+
+def merge_value_uk(specs):
+    """값 입력칸(텍스트/숫자) 바로 뒤에 '{이름}_UK'(미상) 또는 '{이름}_YN'(ND) 플래그
+    체크박스가 오면 한 칸으로 합친다. 사용자가 값칸에 그 키워드(미상/ND)를 적으면 봇이
+    체크박스를 누른다. 키워드는 체크박스 라벨에서 가져와 마커에 담는다.
+    라디오/체크박스/셀렉트 값칸은 대상 아님(자유입력 값칸만)."""
+    out, i = [], 0
+    while i < len(specs):
+        s = specs[i]
+        nxt = specs[i + 1] if i + 1 < len(specs) else None
+        merged = None
+        if (s[0] == "single" and s[1]["type"] not in ("radio", "checkbox", "select")
+                and nxt and nxt[0] == "single" and is_single_cb(nxt[1])):
+            vn, cn = s[1]["name"], nxt[1]["name"]
+            kw = (nxt[1]["choices"][0].get("label") or "").strip()
+            kw = kw.split()[0] if kw else kw  # 'ND -' 같은 구분자 꼬리 제거
+            paired = cn in (vn + "_UK", vn + "_YN") or MANUAL_VALUK.get(vn) == cn
+            if paired and kw in VALUK_KEYWORDS:
+                merged = ("valuk", s[1], nxt[1], kw)
+        if merged:
+            out.append(merged)
+            i += 2
+            continue
+        out.append(s)
+        i += 1
+    return out
+
+
+def write_columns(ws, fields, n_rows, list_ctx=None):
+    """area/patient 시트 공통: B열부터 컬럼(단일/그룹/일시)을 쓰고 환자키를 채운다.
+    반환: (입력 칸 개수, {필드명: 컬럼번호})  ← 컬럼맵은 조건부 서식에서 사용."""
     seen, col = {}, 2
-    for spec in grouped_columns(fields):
-        if spec[0] == "single":
+    colmap = {}
+    byname = {f["name"]: f for f in fields}
+    for spec in merge_value_uk(merge_datetime(grouped_columns(fields))):
+        if spec[0] == "valuk":
+            _, fv, fuk, kw = spec
+            colmap[fv["name"]] = col
+            colmap[fuk["name"]] = col
+            disp = display_label(fv)  # 값칸 라벨(단위 포함)
+            if disp in seen:
+                seen[disp] += 1
+                disp = f"{disp} [{fv['name']}]"
+            else:
+                seen[disp] = 1
+            marker = VUK_PREFIX + ",".join([fv["name"], fuk["name"], kw])
+            _write_header(ws, col, disp, marker)
+            dv = DataValidation(showInputMessage=True, promptTitle="입력",
+                                prompt=f"값 입력. 모르거나 미측정이면 '{kw}' 입력")
+        elif spec[0] == "datetime":
+            dts = spec[1:]  # (날짜, 시, 분) 또는 (날짜, 시, 분, 미상체크박스)
+            for x in dts:
+                colmap[x["name"]] = col  # 합친 칸을 가리킴(조건부서식용)
+            fd = dts[0]
+            disp = with_context(fd.get("label") or fd["name"], fd.get("context"))
+            if disp in seen:
+                # 값칸과 라벨이 겹치는 일시칸 → 필드명 대신 (시행일시)로 구분
+                cand = f"{disp} (시행일시)"
+                disp = cand if cand not in seen else f"{disp} [{fd['name']}]"
+            seen[disp] = seen.get(disp, 0) + 1
+            marker = DT_PREFIX + ",".join(x["name"] for x in dts)
+            _write_header(ws, col, disp, marker)
+            prompt = "예: 2026-06-15 05:02  (날짜 시:분)"
+            if len(dts) == 4:  # 미상 흡수됨
+                prompt += "  ·  모르면 '미상'"
+            dv = DataValidation(showInputMessage=True, promptTitle="일시 입력형식",
+                                prompt=prompt)
+        elif spec[0] == "single":
             f = spec[1]
+            colmap[f["name"]] = col
             disp = display_label(f)
             if disp in seen:
                 seen[disp] += 1
                 disp = f"{disp} [{f['name']}]"
             else:
                 seen[disp] = 1
-            _write_header(ws, col, disp, f["name"])
-            dv = dv_for_field(f)
+            if f.get("tree"):
+                leaves, marker = tree_leaves(byname, f)
+                _write_header(ws, col, disp, marker)
+                dv = dv_from_labels(leaves, list_ctx, title=disp)
+            else:
+                _write_header(ws, col, disp, f["name"])
+                dv = dv_for_field(f, list_ctx, title=disp)
         else:
             _, glabel, members = spec
-            disp = with_context(glabel, members[0].get("context"))
+            colmap[members[0]["name"]] = col  # 그룹 컬럼도 조건부서식용으로 기록
+            gp = group_prefix(members[0]["name"])
+            single = gp in SINGLE_SELECT_GROUPS
+            if gp in GROUP_LABEL_OVERRIDES:
+                disp = GROUP_LABEL_OVERRIDES[gp]
+            else:
+                disp = with_context(glabel, members[0].get("context"))
             if disp in seen:
                 seen[disp] += 1
                 # 같은 질문의 라디오(예/아니오/미상) 옆 세부 체크박스 묶음 → "(상세)"
                 alt = f"{disp} (상세)"
                 if alt in seen:
-                    alt = f"{disp} [{group_prefix(members[0]['name'])}]"
+                    alt = f"{disp} [{gp}]"
                 disp = alt
                 seen[disp] = seen.get(disp, 0) + 1
             else:
                 seen[disp] = 1
             name_text = GROUP_PREFIX + ",".join(m["name"] for m in members)
             _write_header(ws, col, disp, name_text)
-            dv = dv_for_group(members)
+            dv = dv_for_group(members, list_ctx, title=disp)
+            if dv is not None:
+                dv.showInputMessage = True
+                if single:  # 배타적 그룹 → 택1 안내
+                    opts = " / ".join((m["choices"][0].get("label") or "").strip()
+                                      for m in members)
+                    dv.promptTitle = "택1 (하나만 선택)"
+                    dv.prompt = f"하나만 선택하세요: {opts}"
+                else:       # 복수선택 그룹 → 쉼표 안내
+                    ex = ", ".join(
+                        (m["choices"][0].get("label") or "").strip()
+                        for m in members[:2] if (m["choices"][0].get("label") or "").strip())
+                    dv.promptTitle = "복수 선택 가능"
+                    dv.prompt = ("해당하는 것을 모두 쉼표(,)로 구분해 입력하세요."
+                                 + (f"  예: {ex}" if ex else ""))
         if dv is not None:
             ws.add_data_validation(dv)
             colL = get_column_letter(col)
@@ -245,8 +515,410 @@ def write_columns(ws, fields, n_rows):
         col += 1
     for i in range(n_rows):
         ws.cell(row=3 + i, column=1, value=i + 1)
+    # 데이터 칸(3행~)에 테두리 — 빈 표도 격자가 보이게
+    for r in range(3, 3 + n_rows):
+        for cc in range(1, col):
+            ws.cell(row=r, column=cc).border = BORDER
     ws.freeze_panes = "B3"
-    return col - 2
+    return col - 2, colmap
+
+
+# 조건부 회색 규칙 (안내용 표시 — 입력 잠금이 아님).
+# 부모 통합칸 값이 아래 '흰색(입력) 조건'을 만족하지 않으면 대상 칸을 회색으로.
+# 통합칸 값은 "부모라벨 - 자식라벨" 문자열이므로 그 문자열을 그대로 비교한다.
+# 조건부 서식(dxf) 채우기는 fgColor 만으로는 Excel 이 렌더링하지 않는다.
+# start_color+end_color+fill_type 로 지정해야 실제로 색이 보인다.
+GREY_FILL = PatternFill(start_color="D9D9D9", end_color="D9D9D9", fill_type="solid")
+WARN_FILL = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+
+
+def apply_grey_rules(ws, colmap, n_rows):
+    """공통영역: 심폐소생술1/2 선택에 따라 종속 일시칸을 회색 처리.
+    (심폐1=ER_CPR1, 심폐2=ER_CPR2 통합칸. 값은 '부모 - 자식' 문자열.)"""
+    if "ER_CPR1" not in colmap or "ER_CPR2" not in colmap:
+        return
+    last = 2 + n_rows
+    c1 = get_column_letter(colmap["ER_CPR1"])  # 심폐소생술1 통합칸
+    c2 = get_column_letter(colmap["ER_CPR2"])  # 심폐소생술2 통합칸
+    c3 = get_column_letter(colmap["ER_CPR_RESULT"]) if "ER_CPR_RESULT" in colmap else None
+    # (대상 필드들, 회색으로 만들 조건[= 흰색 조건의 부정], 3행 기준 수식)
+    rules = [
+        # 중단일시: 심폐1이 '미시행'이면 회색 (CPR 미시행 → 중단시각 없음). 미입력도 회색.
+        (["ER_CPR_STOP_DATE", "ER_CPR_STOP_HOUR", "ER_CPR_STOP_MIN"],
+         f'OR(${c1}3="",LEFT(${c1}3,3)="미시행")'),
+        # Any ROSC 일시: 심폐2 = '시행 - Sustained ROSC없이 Any ROSC만' 일 때만 흰색.
+        (["ER_ANY_ROSC_DATE", "ER_ANY_ROSC_HOUR", "ER_ANY_ROSC_MIN"],
+         f'${c2}3<>"시행 - Sustained ROSC없이 Any ROSC만"'),
+        # Sustained ROSC 일시: 심폐2='시행 - Sustained ROSC' 또는
+        #                      심폐1='시행 20분이내 중단 - 자발순환회복' 일 때만 흰색.
+        (["ER_SUS_ROSC_DATE", "ER_SUS_ROSC_HOUR", "ER_SUS_ROSC_MIN"],
+         f'AND(${c2}3<>"시행 - Sustained ROSC",'
+         f'${c1}3<>"시행 20분이내 중단 - 자발순환회복")'),
+    ]
+    c4 = get_column_letter(colmap["HOSP_RESULT"]) if "HOSP_RESULT" in colmap else None
+    c5 = get_column_letter(colmap["FU6M_STAT"]) if "FU6M_STAT" in colmap else None
+    if c3:
+        rules += [
+            # 응급실 사망일시: 결과가 '사망'(사망-사망/가망없는퇴원)일 때만 흰색.
+            (["ER_DIE_DATE", "ER_DIE_HOUR", "ER_DIE_MIN"],
+             f'LEFT(${c3}3,2)<>"사망"'),
+            # 생존-입원/퇴원 종속칸: 결과='생존 - 입원' 또는 '생존 - 퇴원'일 때 흰색
+            # (사이트 setER_CPR_RESULT_LIVE 와 동일: 입원 OR 퇴원).
+            # HOSP_CPC/FU6M_DIE/F6M_CPC 는 아래에서 세부 게이팅.
+            (["HOSP_AD_DATE", "HOSP_AD_HOUR", "HOSP_AD_MIN", "HOSP_AD_ROOM",
+              "HOSP_AD_STAT", "HOSP_RESULT", "FU6M_STAT"],
+             f'AND(${c3}3<>"생존 - 입원",${c3}3<>"생존 - 퇴원")'),
+        ]
+    if c4:  # 병원치료결과 하위
+        rules += [
+            # 병원퇴원일시(+퇴원형태): 병원치료결과='생존퇴원'일 때만 흰색.
+            (["HOSP_OUT_DATE", "HOSP_OUT_HOUR", "HOSP_OUT_MIN", "HOSP_RESULT_OUT"],
+             f'${c4}3<>"생존퇴원"'),
+            # 병원사망일시: 병원치료결과='사망퇴원'일 때만 흰색.
+            (["HOSP_DIE_DATE", "HOSP_DIE_HOUR", "HOSP_DIE_MIN"],
+             f'${c4}3<>"사망퇴원"'),
+        ]
+    if c3 and c4:
+        # 병원퇴원시 신경학적상태: 결과=생존-입원/퇴원 이면서 병원치료결과≠입원중 일 때만 흰색.
+        rules.append(
+            (["HOSP_CPC"],
+             f'OR(AND(${c3}3<>"생존 - 입원",${c3}3<>"생존 - 퇴원"),${c4}3="입원중")'))
+    if c5:  # 6개월 후 생존 하위
+        rules += [
+            # 6개월 후 사망일시: 6개월 후 생존='사망'일 때만 흰색.
+            (["FU6M_DIE_DATE", "FU6M_DIE_HOUR", "FU6M_DIE_MIN"],
+             f'${c5}3<>"사망"'),
+            # 6개월 후 신경학적 상태: 6개월 후 생존='생존'일 때만 흰색.
+            (["F6M_CPC"], f'${c5}3<>"생존"'),
+        ]
+    seen_cf = set()
+    for fnames, formula in rules:
+        for fn in fnames:
+            if fn not in colmap:
+                continue
+            c = get_column_letter(colmap[fn])
+            if (c, formula) in seen_cf:  # 합쳐진 일시칸 중복 방지
+                continue
+            seen_cf.add((c, formula))
+            ws.conditional_formatting.add(
+                f"{c}3:{c}{last}", FormulaRule(formula=[formula], fill=GREY_FILL))
+
+    # 모순 경고: 심폐1='20분이상 시행'인데 심폐2='미시행'이면 심폐2칸 빨강.
+    ws.conditional_formatting.add(
+        f"{c2}3:{c2}{last}",
+        FormulaRule(formula=[f'AND(${c1}3="20분이상 시행",${c2}3="미시행")'],
+                    fill=WARN_FILL))
+
+
+def apply_grey_community(ws, colmap, n_rows):
+    """지역사회: 심정지 목격여부(WITNESS)≠목격이면 발생(목격)추정시각 칸 회색.
+    (사이트 JS는 비목격도 활성화하나, 사용자 요청상 '목격'만 활성.)"""
+    if "WITNESS" not in colmap:
+        return
+    last = 2 + n_rows
+    w = get_column_letter(colmap["WITNESS"])
+    seen_cf = set()
+    for fn in ["ONSET_DATE", "ONSET_CLOCK_HOUR", "ONSET_CLOCK_MIN", "ONSET_DATE_UK"]:
+        if fn not in colmap:
+            continue
+        c = get_column_letter(colmap[fn])
+        if c in seen_cf:  # 합쳐진 일시칸(날짜/시/분 동일칸) 중복 방지
+            continue
+        seen_cf.add(c)
+        ws.conditional_formatting.add(
+            f"{c}3:{c}{last}",
+            FormulaRule(formula=[f'${w}3<>"목격"'], fill=GREY_FILL))
+
+    # 목격자/발견자·발생장소의 '기타' 자유입력칸: 부모가 '기타'일 때만 흰색.
+    for parent, etc in [("WIT_PERSON", "WIT_PERSON_ETC"),
+                        ("ONSET_LOC", "ONSET_LOC_ETC")]:
+        if parent in colmap and etc in colmap:
+            pc = get_column_letter(colmap[parent])
+            ec = get_column_letter(colmap[etc])
+            ws.conditional_formatting.add(
+                f"{ec}3:{ec}{last}",
+                FormulaRule(formula=[f'${pc}3<>"기타"'], fill=GREY_FILL))
+
+
+def apply_grey_prevent(ws, colmap, n_rows):
+    """예방역학: 질환별 진단→치료여부→방법 연쇄 회색.
+    진단(예/아니오/미상)≠예 → 치료여부 회색, 치료여부≠예 → 방법(@GROUP) 회색.
+    (방법 그룹칸은 colmap 에 첫 멤버명 HTNTX1/DMTX1/DYSLTX1 로 기록됨.)"""
+    last = 2 + n_rows
+
+    def L(name):
+        return get_column_letter(colmap[name]) if name in colmap else None
+
+    # (진단, 치료여부, 방법그룹 첫멤버)
+    for dx, tx, method in [("HTN", "HTNTX", "HTNTX1"),
+                           ("DM", "DMTX", "DMTX1"),
+                           ("DYSLIPID", "DYSLTX", "DYSLTX1")]:
+        cdx, ctx, cm = L(dx), L(tx), L(method)
+        if ctx and cdx:  # 치료여부: 진단≠예면 회색
+            ws.conditional_formatting.add(
+                f"{ctx}3:{ctx}{last}",
+                FormulaRule(formula=[f'${cdx}3<>"예"'], fill=GREY_FILL))
+        if cm and ctx:  # 방법: 치료여부≠예면 회색
+            ws.conditional_formatting.add(
+                f"{cm}3:{cm}{last}",
+                FormulaRule(formula=[f'${ctx}3<>"예"'], fill=GREY_FILL))
+
+
+def apply_grey_relief(ws, colmap, n_rows):
+    """구급단계: 부모 라디오 선택에 따라 종속 일시/상세/용량칸 회색 안내.
+    - 일시칸(제세동/기계식압박/자발순환): 부모가 시행/적용/회복일 때만 흰색
+    - 심정지리듬·기타, 기도확보 방법(그룹), 약물 상세(그룹): 부모 활성값일 때만 흰색
+    - 약물별 총 용량: '약물 상세' 그룹칸에 해당 약이 선택됐을 때만 흰색(사이트와 동일)."""
+    last = 2 + n_rows
+
+    def L(name):
+        return get_column_letter(colmap[name]) if name in colmap else None
+
+    def rule(target, formula):
+        c = L(target)
+        if c:
+            ws.conditional_formatting.add(
+                f"{c}3:{c}{last}", FormulaRule(formula=[formula], fill=GREY_FILL))
+
+    # (부모필드, 흰색조건값, 대상칸) — 대상칸이 부모 활성값과 다르면 회색
+    for parent, white, target in [
+        ("PRE_DEFIB", "시행", "PRE_DEFIB_DATE"),         # 제세동 첫 시행일시
+        ("PRE_MECHCPR", "적용", "PRE_MECHCPR_DATE"),     # 기계식압박 적용일시(신규)
+        ("PRE_ROSC", "회복", "PRE_ROSC_DATE"),           # 자발순환 회복일시
+        ("PRE_ECG", "심정지리듬", "PRE_ECG_RH"),          # 심정지리듬 종류
+        ("PRE_ECG_RH", "기타", "PRE_ECG_RH_ETC"),        # 심정지리듬(기타) 자유입력
+        ("FREE_AIRWAY", "확보함", "FREE_AIRWAY_OPA"),     # 기도확보 방법 그룹칸
+        ("DRUG_USE", "사용함", "DRUG_USE_EPI"),           # 약물 상세 그룹칸
+    ]:
+        p = L(parent)
+        if p:
+            rule(target, f'${p}3<>"{white}"')
+
+    # 약물별 총 용량: '약물 상세' 그룹칸(DRUG_USE_EPI 컬럼)에 해당 약 이름이 있어야 흰색.
+    g = L("DRUG_USE_EPI")
+    if g:
+        for dose, drug in [("PRE_DRUG_EPI_TOT", "에피네프린"),
+                           ("PRE_DRUG_AMIO_TOT", "아미오다론"),
+                           ("PRE_DRUG_VASO_TOT", "바소프레신")]:
+            rule(dose, f'NOT(ISNUMBER(SEARCH("{drug}",${g}3)))')
+
+
+def apply_grey_in_hosp(ws, colmap, n_rows, common_colmap=None):
+    """병원단계 조건부 회색 안내.
+    #1 타병원 자발순환회복(PRE_ROSC): 공통영역 내원경로=타병원경유 일 때만 흰색(교차시트).
+    #2 회복시각: PRE_ROSC=회복 / #3 심정지리듬: HOSP_ECG=심정지리듬
+    #4 에피네프린 두 칸: 미상/미사용(EPINE 그룹) 선택시 회색
+    #6/#7/#9 기타 자유입력칸: 부모=기타 일 때만 흰색."""
+    last = 2 + n_rows
+
+    def L(name):
+        return get_column_letter(colmap[name]) if name in colmap else None
+
+    def rule(target, formula):
+        c = L(target)
+        if c:
+            ws.conditional_formatting.add(
+                f"{c}3:{c}{last}", FormulaRule(formula=[formula], fill=GREY_FILL))
+
+    # #1 교차시트: 공통영역 ER_LOCATION=타병원경유 아니면 PRE_ROSC 회색
+    if common_colmap and "ER_LOCATION" in common_colmap:
+        el = get_column_letter(common_colmap["ER_LOCATION"])
+        rule("PRE_ROSC", f"'{SHEET_NAMES['common']}'!${el}3<>\"타병원경유\"")
+    # #2 회복시각
+    pr = L("PRE_ROSC")
+    if pr:
+        rule("PRE_ROSC_DATE", f'${pr}3<>"회복"')
+    # #3 심정지리듬
+    he = L("HOSP_ECG")
+    if he:
+        rule("HOSP_ECG_RH", f'${he}3<>"심정지리듬"')
+    # #4 에피네프린 용량 두 칸: 미상/미사용 그룹칸(EPINE_UK) 선택시 회색
+    eg = L("EPINE_UK")
+    if eg:
+        for t in ("EPINE_TOT", "EPINE_ROSC"):
+            rule(t, f'${eg}3<>""')
+    # #6/#7/#9 + Steroid 종류(기타): 부모=기타 일 때만 흰색
+    for parent, etc in [("F_AD_AIRWAYD", "F_AD_AIRWAY_ETC"),
+                        ("F_IV_KIND", "F_IV_KIND_ETC"),
+                        ("ROSC_12ECG", "ROSC_12ECG_ETC"),
+                        ("STEROID_KIND", "STEROID_KIND_ETC")]:
+        p = L(parent)
+        if p and etc in colmap:
+            rule(etc, f'${p}3<>"기타"')
+
+    # 단위 드롭다운: 짝 값칸이 ND(미측정)/미상이면 단위가 불필요 → 회색 안내.
+    for name in list(colmap):
+        if name.endswith("_UNIT") and name[:-5] in colmap:
+            vc = get_column_letter(colmap[name[:-5]])  # 짝 값칸(@VUK 통합칸)
+            rule(name, f'OR(${vc}3="ND",${vc}3="미상")')
+
+    # Steroid 투여량(값칸+단위칸): 종류=미시행/미선택이면 회색 (약물명·기타일 때만 흰색)
+    sk = L("STEROID_KIND")
+    if sk:
+        for t in ("STEROID", "STEROID_UNIT"):
+            rule(t, f'OR(${sk}3="",${sk}3="미시행")')
+
+
+def apply_grey_alive_after(ws, colmap, n_rows, common_colmap=None):
+    """소생후단계: 시트 전체 게이팅(공통 심폐1/2) + 시술·검사·목표체온·승압제 종속 회색."""
+    last = 2 + n_rows
+
+    def L(name):
+        return get_column_letter(colmap[name]) if name in colmap else None
+
+    def rule(target, formula):
+        c = L(target)
+        if c:
+            ws.conditional_formatting.add(
+                f"{c}3:{c}{last}", FormulaRule(formula=[formula], fill=GREY_FILL))
+
+    # 시트 전체 게이팅: 공통 심폐1='시행 20분이내 중단 - 자발순환회복' 또는
+    # 심폐2='시행 - Sustained ROSC' 인 경우에만 활성. 아니면 전 컬럼 회색.
+    if common_colmap and "ER_CPR1" in common_colmap and "ER_CPR2" in common_colmap and colmap:
+        c1 = get_column_letter(common_colmap["ER_CPR1"])
+        c2 = get_column_letter(common_colmap["ER_CPR2"])
+        cs = SHEET_NAMES["common"]
+        gate = (f"NOT(OR('{cs}'!${c1}3=\"시행 20분이내 중단 - 자발순환회복\","
+                f"'{cs}'!${c2}3=\"시행 - Sustained ROSC\"))")
+        lastcol = get_column_letter(max(colmap.values()))
+        ws.conditional_formatting.add(
+            f"B3:{lastcol}{last}", FormulaRule(formula=[gate], fill=GREY_FILL))
+
+    # 시술류(등록/타병원 시행이면 흰색): 미시행·미상·미선택이면 회색
+    for parent, targets in [("REPER", ["REPER_TIME"]), ("CLOT", ["CLOT_DATE"]),
+                            ("ANGIO", ["ANGIO_DATE"]), ("CA", ["CA_DATE"]),
+                            ("CAB", ["CAB_DATE"])]:
+        p = L(parent)
+        if p:
+            for t in targets:
+                rule(t, f'OR(${p}3="",${p}3="미시행",${p}3="미상")')
+
+    # 시행함류: '시행함' 아니면 회색 (ECMO7/영상검사 일시·결과/신경검사 결과)
+    exec_map = {
+        "ECMO7": ["ECMO7_DATE"],
+        "SSEP": ["SSEP_DATE1", "SSEP_RESULT_CMMT", "SSEP_RESULT_FILE"],
+        "EEG": ["EEG_DATE1", "EEG_RESULT_CMMT", "EEG_RESULT_FILE"],
+        "BCT": ["BCT_DATE", "BCT_RESULT_CMMT", "BCT_RESULT_FILE"],
+        "BMRI": ["BMRI_DATE", "BMRI_RESULT_CMMT", "BMRI_RESULT_FILE"],
+        "GCS": ["GCS_E_RESULT", "GCS_V_RESULT", "GCS_M_RESULT"],
+        "PLR": ["PLR_RESULT"], "CR": ["CR_RESULT"], "SR": ["SR_RESULT"],
+        "GCS72": ["GCS72_E_RESULT", "GCS72_V_RESULT", "GCS72_M_RESULT"],
+        "PLR72": ["PLR72_RESULT"], "CR72": ["CR72_RESULT"], "SR72": ["SR72_RESULT"],
+    }
+    for parent, targets in exec_map.items():
+        p = L(parent)
+        if p:
+            for t in targets:
+                rule(t, f'${p}3<>"시행함"')
+
+    # 목표체온조절(LAW_TEMP='시행'): 하위 저온법/일시/목표온도/재가온 모두 회색(기본 비활성)
+    lt = L("LAW_TEMP")
+    if lt:
+        for t in ["EX_LAW_TEMP1", "EX_LAW_TEMP2", "EX_LAW_TEMP3", "IN_LAW_TEMP",
+                  "LAW_TEMP_DATE", "RE_TEMP_DATE", "LAW_TEMP_TARGET", "RE_TEMP_SPEED"]:
+            rule(t, f'${lt}3<>"시행"')
+
+    # 승압제(HYPER): 'ROSC 24시간 이내'일 때만 종류 그룹 활성(미상은 드롭다운에 포함됨)
+    hy = L("HYPER")
+    if hy:
+        rule("ROSC_INOTR_TYPE1", f'${hy}3<>"ROSC 24시간 이내"')
+
+    # 기타 자유입력: 부모=기타 아니면 회색
+    for parent, etc in [("LAW_TEMP_TARGET", "LAW_TEMP_TARGET_ETC"),
+                        ("RE_TEMP_SPEED", "RE_TEMP_SPEED_ETC")]:
+        p = L(parent)
+        if p and etc in colmap:
+            rule(etc, f'${p}3<>"기타"')
+    # 승압제 종류 그룹에 '기타' 있을 때만 ETC 흰색
+    g = L("ROSC_INOTR_TYPE1")
+    if g and "ROSC_INOTR_TYPE_ETC" in colmap:
+        rule("ROSC_INOTR_TYPE_ETC", f'NOT(ISNUMBER(SEARCH("기타",${g}3)))')
+
+
+def apply_grey_heart(ws, colmap, n_rows):
+    """심장검사(항상 활성): 심장효소 ND→단위·일시 회색, 심초음파/CAG 미시행→하위 회색."""
+    last = 2 + n_rows
+
+    def L(name):
+        return get_column_letter(colmap[name]) if name in colmap else None
+
+    def rule(target, formula):
+        c = L(target)
+        if c:
+            ws.conditional_formatting.add(
+                f"{c}3:{c}{last}", FormulaRule(formula=[formula], fill=GREY_FILL))
+
+    # 심장효소: 값=ND/미상이면 그 항목의 단위칸·시행일시칸 회색
+    for e in ["CKMB", "CKMB_PEAK", "TROP_I", "TROP_I_PEAK", "TROP_T", "TROP_T_PEAK",
+              "BNP", "NTPRO_BNP"]:
+        v = L(e)
+        if v:
+            for sfx in ["_UNIT", "_DATE"]:  # BNP류는 _DATE 없음 → colmap 없으면 skip
+                rule(e + sfx, f'OR(${v}3="ND",${v}3="미상")')
+
+    # 심초음파 시행함 아니면 국소벽장애(RWMA) 회색
+    echo = L("ECHO_DONE1")
+    if echo:
+        rule("RWMA1", f'${echo}3<>"시행함"')
+
+    # CAG 3시기: 미시행→결과(트리 드롭다운) 회색, 결과≠기타→기타 자유입력칸 회색
+    for i in ("1", "2", "3"):
+        done = L("CAG_DONE" + i)
+        if done:
+            rule("CAG_RE" + i, f'${done}3<>"시행함"')
+        re = L("CAG_RE" + i)
+        if re and ("CAG_RE_ETC" + i) in colmap:
+            rule("CAG_RE_ETC" + i, f'${re}3<>"기타"')
+
+
+def apply_grey_y_child(ws, colmap, n_rows):
+    """소아소생술(항상 활성, 게이팅 없음): 과거력=기타만 기타칸 활성,
+    병원 퇴원시 PCPC=사망/미상이면 추적관찰(6·12개월) 회색,
+    12개월 후 생존=생존/사망일 때만 12개월 후 PCPC 활성. 사망일시는 항상 활성."""
+    last = 2 + n_rows
+
+    def L(name):
+        return get_column_letter(colmap[name]) if name in colmap else None
+
+    def rule(target, formula):
+        c = L(target)
+        if c:
+            ws.conditional_formatting.add(
+                f"{c}3:{c}{last}", FormulaRule(formula=[formula], fill=GREY_FILL))
+
+    mh = L("MEDI_HIST")
+    if mh:
+        rule("MEDI_HIST_ETC", f'${mh}3<>"기타"')
+
+    # 병원 퇴원시 PCPC=PCPC6(사망)/미상(또는 미입력)이면 6·12개월 추적관찰 3칸 회색
+    out = L("Y_OUT_PCPC")
+    if out:
+        dead = f'OR(${out}3="PCPC 6 (사망)",${out}3="미상",${out}3="")'
+        for t in ("Y_6M_PCPC", "Y_12M_LIVE", "Y_12M_PCPC"):
+            rule(t, dead)
+
+    live = L("Y_12M_LIVE")
+    if live:
+        rule("Y_12M_PCPC", f'NOT(OR(${live}3="생존",${live}3="사망"))')
+
+
+def apply_field_notes(ws, colmap):
+    """FIELD_NOTES(필드명→설명글)를 헤더(1행) 셀에 Excel 메모로 부착.
+    합쳐진 칸(@DT/@VUK/@TREE/@GROUP)은 구성 필드명 아무거로나 키하면 같은 열을 찾는다.
+    봇은 셀 값만 읽으므로 메모는 크롤링에 영향 없음. 반환: 이 시트에서 찾은 필드명 집합."""
+    hit = set()
+    for name, text in FIELD_NOTES.items():
+        col = colmap.get(name)
+        if not col:
+            continue
+        hit.add(name)  # 열은 찾음(미매칭 경고 제외용)
+        cell = ws.cell(row=1, column=col)
+        if text and cell.comment is None:  # 같은 열에 이미 붙었으면 유지
+            cm = Comment(str(text), "KOCARC")
+            cm.width = 340
+            cm.height = max(90, 16 * (str(text).count("\n") + 3))
+            cell.comment = cm
+    return hit
 
 
 def _write_header(ws, col, label, name_text):
@@ -285,10 +957,27 @@ def add_key_columns(ws, label_text):
     ws.column_dimensions["A"].width = 10
 
 
-def build_area_sheet(wb, area, sheet_title, n_rows=30):
+def build_area_sheet(wb, area, sheet_title, n_rows=30, list_ctx=None, common_colmap=None):
     ws = wb.create_sheet(sheet_title)
     add_key_columns(ws, "환자키")
-    return write_columns(ws, area["fields"], n_rows)  # 입력 칸 개수
+    count, colmap = write_columns(ws, area["fields"], n_rows, list_ctx)
+    if area["key"] == "common":
+        apply_grey_rules(ws, colmap, n_rows)  # 종속 일시칸 회색 안내
+    elif area["key"] == "prevent":
+        apply_grey_prevent(ws, colmap, n_rows)
+    elif area["key"] == "community":
+        apply_grey_community(ws, colmap, n_rows)
+    elif area["key"] == "relief":
+        apply_grey_relief(ws, colmap, n_rows)
+    elif area["key"] == "in_hosp":
+        apply_grey_in_hosp(ws, colmap, n_rows, common_colmap)  # 일부 규칙은 공통영역 참조
+    elif area["key"] == "alive_after":
+        apply_grey_alive_after(ws, colmap, n_rows, common_colmap)  # 시트 게이팅=공통 참조
+    elif area["key"] == "heart":
+        apply_grey_heart(ws, colmap, n_rows)
+    elif area["key"] == "y_child":
+        apply_grey_y_child(ws, colmap, n_rows)
+    return count, colmap
 
 
 def build_codebook(wb, schema):
@@ -322,6 +1011,14 @@ def build_codebook(wb, schema):
                 r += 1
                 continue
             f = spec[1]
+            if f.get("tree"):
+                byname = {x["name"]: x for x in area["fields"]}
+                leaves, _ = tree_leaves(byname, f)
+                desc = "택1(부모-자식 통합): " + " | ".join(leaves)
+                put_row(r, [area["title"], display_label(f), f["name"],
+                            "조건부", desc])
+                r += 1
+                continue
             pairs = []
             if f["type"] in ("radio", "checkbox"):
                 pairs = [(c["value"], c["label"]) for c in f["choices"]]
@@ -356,8 +1053,13 @@ def build_usage(wb):
         " - 3행부터 = 환자 데이터",
         "",
         "■ 날짜/시각",
-        " - 날짜 칸은 2026-06-15 형식(YYYY-MM-DD)으로 적으세요.",
-        " - 시각은 _HOUR(시), _MIN(분) 칸에 각각 적습니다. (코드북 참고)",
+        " - 일시 칸은 한 칸에 '2026-06-15 05:02' 형식(날짜 시:분)으로 적으세요.",
+        "   (프로그램이 날짜/시/분으로 자동 분리해 입력합니다. 시각 모르면 날짜만 적어도 됩니다.)",
+        " - 생년월일은 년/월/일 칸에 각각 적습니다.",
+        "",
+        "■ 검사결과 파일 (SSEP·EEG·뇌CT·뇌MRI 등)",
+        " - 결과 '파일 첨부'는 프로그램이 대신 올리지 못합니다. 필요하면 등록 후 사이트에서 직접 업로드하세요.",
+        " - 엑셀에는 검사결과 '소견(텍스트)'만 적으면 됩니다. (파일 칸은 양식에 없습니다.)",
         "",
         "■ 주의",
         " - 비밀번호는 이 파일에 적지 마세요.",
@@ -381,24 +1083,37 @@ def build(out_path=None, schema_path=None, log=print):
     wb.remove(wb.active)  # 기본 시트 제거
 
     build_usage(wb)
+    list_ctx = ListSheet(wb)  # 콤마/따옴표 든 라벨용 숨김 목록 시트
 
     # 환자목록 = 환자등록(시작) 영역
     pa = areas.get("patient_add")
     ws = wb.create_sheet("환자목록")
     add_key_columns(ws, "환자키")
-    pa_count = write_columns(ws, pa["fields"], 30)
+    pa_count, pa_colmap = write_columns(ws, pa["fields"], 30, list_ctx)
 
     # 나머지 영역 시트 (입력칸이 없는 영역은 시트 생성 안 함)
-    counts = {}
+    # common 을 먼저 만들어 colmap 을 보관 → in_hosp 교차시트 회색규칙에서 참조.
+    counts, colmaps = {}, {}
     for key in ["common", "prevent", "community", "relief", "in_hosp",
                 "alive_after", "heart", "y_child", "comment"]:
         if key not in areas:
             continue
         if not any(f["user_entry"] for f in areas[key]["fields"]):
             continue
-        counts[key] = build_area_sheet(wb, areas[key], SHEET_NAMES[key])
+        counts[key], colmaps[key] = build_area_sheet(
+            wb, areas[key], SHEET_NAMES[key], list_ctx=list_ctx,
+            common_colmap=colmaps.get("common"))
 
     build_codebook(wb, schema)
+
+    # 항목별 도움말 메모 부착 (환자목록 + 각 영역 시트)
+    if FIELD_NOTES:
+        matched = apply_field_notes(ws, pa_colmap)
+        for key, cmap in colmaps.items():
+            matched |= apply_field_notes(wb[SHEET_NAMES[key]], cmap)
+        unmatched = [k for k in FIELD_NOTES if k not in matched]
+        if unmatched:
+            log(f"⚠ 메모 미매칭 필드명 {len(unmatched)}개(오타/제외항목?): {unmatched}")
 
     wb.save(out_path)
     log(f"엑셀 양식 저장: {out_path}")

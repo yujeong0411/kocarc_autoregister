@@ -358,10 +358,163 @@ def fill_group(driver, resolver, area_key, group_name, raw, conf):
     return ok, warn
 
 
+# 조건부 라디오→라디오 트리 (build_template.TREE_PREFIX/TREE_SEP 와 동일해야 함)
+TREE_PREFIX = "@TREE:"
+TREE_SEP = " - "
+
+
+def parse_tree_marker(marker):
+    """@TREE:부모|부모값=자식;부모값=자식  →  (부모필드, {부모값: 자식필드})"""
+    parent, _, mapstr = marker[len(TREE_PREFIX):].partition("|")
+    tree = {}
+    for kv in mapstr.split(";"):
+        if "=" in kv:
+            pv, cn = kv.split("=", 1)
+            tree[pv.strip()] = cn.strip()
+    return parent.strip(), tree
+
+
+def tree_targets(resolver, area_key, marker, raw):
+    """마커 + 엑셀값('부모 - 자식(- 손자)' 또는 '부모라벨') → [(필드, 폼값)].
+    직속 자식은 마커에서, 더 깊은 단계는 각 자식필드의 schema tree 로 재귀 복원한다.
+    순수 함수(브라우저 불필요) — 자체검증에서 재사용."""
+    parent, tree = parse_tree_marker(marker)
+    parts = [p.strip() for p in str(raw).split(TREE_SEP) if p.strip()]
+    out, field, childmap = [], parent, tree
+    for part in parts:
+        val = resolver.to_form_value(area_key, field, part)
+        out.append((field, val))
+        child = childmap.get(str(val))
+        if not child:
+            break
+        field = child
+        # 다음 단계 자식맵: schema 의 자식필드 tree (없으면 종료)
+        fdef = resolver.field(area_key, field) or {}
+        childmap = fdef.get("tree") or {}
+    return out
+
+
+# 날짜+시+분 통합칸 (build_template.DT_PREFIX 와 동일해야 함)
+DT_PREFIX = "@DT:"
+
+
+def datetime_targets(raw):
+    """'2026-06-15 05:02'(또는 엑셀 날짜값) → (날짜, 시, 분) 문자열. 없으면 None.
+    시/분은 2자리로 0채움. 날짜만 있으면 시/분은 None."""
+    s = str(raw).strip()
+    date = hour = minute = None
+    m = re.search(r"(\d{4})[-./](\d{1,2})[-./](\d{1,2})", s)
+    if m:
+        date = f"{int(m.group(1)):04d}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
+    t = re.search(r"(\d{1,2}):(\d{1,2})", s)
+    if t:
+        hour = f"{int(t.group(1)):02d}"
+        minute = f"{int(t.group(2)):02d}"
+    return date, hour, minute
+
+
+def fill_datetime(driver, resolver, area_key, marker, raw, conf):
+    """@DT 통합칸: '2026-06-15 05:02'를 날짜/시/분 필드로 분해해 입력.
+    마커에 4번째 필드(_UK 미상 체크박스)가 있고 셀에 '미상'이 적혀 있으면
+    날짜/시/분 대신 그 체크박스만 체크한다."""
+    fields = marker[len(DT_PREFIX):].split(",")
+    uk = fields[3] if len(fields) > 3 else None
+    if uk and "미상" in str(raw):
+        try:
+            res = driver.execute_script(SET_VALUE_JS, uk, "1", "checkbox")
+        except UnexpectedAlertPresentException:
+            dismiss_alert(driver)
+            res = "ALERT"
+        return (1, []) if res == "OK" else (0, [f"{uk}=미상({res})"])
+    date, hour, minute = datetime_targets(raw)
+    ok, warn = 0, []
+    for fn, val in zip(fields[:3], (date, hour, minute)):
+        if val is None:
+            continue
+        f = resolver.field(area_key, fn)
+        kind = f["type"] if f else "text"
+        try:
+            res = driver.execute_script(SET_VALUE_JS, fn, str(val), kind)
+        except UnexpectedAlertPresentException:
+            dismiss_alert(driver)
+            res = "ALERT"
+        if res == "OK":
+            ok += 1
+        else:
+            warn.append(f"{fn}={val}({res})")
+    return ok, warn
+
+
+# 값칸 + 미상(_UK) 통합칸 (build_template.VUK_PREFIX 와 동일해야 함)
+VUK_PREFIX = "@VUK:"
+
+
+def fill_valuk(driver, resolver, area_key, marker, raw, conf):
+    """@VUK 통합칸: 값칸에 키워드(미상/ND 등)를 적으면 플래그 체크박스를 누르고,
+    아니면 값칸에 값 입력. 마커 형식: @VUK:값필드,체크박스,키워드 (키워드 생략시 '미상')."""
+    parts = marker[len(VUK_PREFIX):].split(",")
+    val_field, uk_field = parts[0], parts[1]
+    keyword = parts[2] if len(parts) > 2 else "미상"
+    if str(raw).strip().lower() == keyword.lower():
+        try:
+            res = driver.execute_script(SET_VALUE_JS, uk_field, "1", "checkbox")
+        except UnexpectedAlertPresentException:
+            dismiss_alert(driver)
+            res = "ALERT"
+        return (1, []) if res == "OK" else (0, [f"{uk_field}={keyword}({res})"])
+    formval = resolver.to_form_value(area_key, val_field, raw)
+    if formval is None:
+        return 0, []
+    f = resolver.field(area_key, val_field)
+    kind = f["type"] if f else "text"
+    try:
+        res = driver.execute_script(SET_VALUE_JS, val_field, str(formval), kind)
+    except UnexpectedAlertPresentException:
+        dismiss_alert(driver)
+        res = "ALERT"
+    return (1, []) if res == "OK" else (0, [f"{val_field}={raw}({res})"])
+
+
+def fill_tree(driver, resolver, area_key, marker, raw, conf):
+    """@TREE 통합칸: 부모 라디오 + (해당 시) 자식 라디오를 채운다.
+    반환: (성공개수, 경고리스트)"""
+    ok, warn = 0, []
+    for field, val in tree_targets(resolver, area_key, marker, raw):
+        if val is None:
+            continue
+        try:
+            res = driver.execute_script(SET_VALUE_JS, field, str(val), "radio")
+        except UnexpectedAlertPresentException:
+            dismiss_alert(driver)
+            res = "ALERT"
+        if res == "OK":
+            ok += 1
+        else:
+            warn.append(f"{field}={val}({res})")
+        if conf["pause"]:
+            time.sleep(conf["pause"] / 10.0)
+    return ok, warn
+
+
 def fill_form1(driver, resolver, area_key, values, conf):
     """현재 페이지 form1 에 values 를 채운다. (저장은 별도)"""
     set_ok, warn = 0, []
     for name, raw in values.items():
+        if name.startswith(DT_PREFIX):
+            d_ok, d_warn = fill_datetime(driver, resolver, area_key, name, raw, conf)
+            set_ok += d_ok
+            warn.extend(d_warn)
+            continue
+        if name.startswith(VUK_PREFIX):
+            v_ok, v_warn = fill_valuk(driver, resolver, area_key, name, raw, conf)
+            set_ok += v_ok
+            warn.extend(v_warn)
+            continue
+        if name.startswith(TREE_PREFIX):
+            t_ok, t_warn = fill_tree(driver, resolver, area_key, name, raw, conf)
+            set_ok += t_ok
+            warn.extend(t_warn)
+            continue
         if name.startswith(GROUP_PREFIX):
             g_ok, g_warn = fill_group(driver, resolver, area_key, name, raw, conf)
             set_ok += g_ok
