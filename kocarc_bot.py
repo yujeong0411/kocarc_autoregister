@@ -718,11 +718,9 @@ def run_bot(conf, should_stop=None):
                     continue
                 log(f"   PAT_ID = {pat_id}")
 
+                # 모든 영역을 빈칸이어도 저장하고 넘어감(건너뛰지 않음).
                 for area_key, sheet, path in want_areas:
                     vals = area_data.get(area_key, {}).get(key)
-                    # Comment Log는 입력이 없어도 저장(완료체크+save)이 필요 → 빈칸이어도 진행.
-                    if not vals and area_key != "comment":
-                        continue
                     target = f"{conf['base_url']}{path}?PAT_ID={pat_id}"
                     driver.get(target)
                     try:
@@ -733,7 +731,8 @@ def run_bot(conf, should_stop=None):
                         continue
                     n = fill_form1(driver, resolver, area_key, vals, conf) if vals else 0
                     log(f"   [{area_key}] {n}개 입력" + (" (빈 저장)" if not vals else ""))
-                    if area_key != "comment":   # Comment Log은 완료체크 없이 저장만
+                    # 완료체크(핵심변수): comment 와 '빈 y_child(소아 아님)'만 생략, 나머지는 무조건.
+                    if not (area_key == "comment" or (area_key == "y_child" and not vals)):
                         mark_complete(driver)
                     save_form1(driver, conf)
                 append_progress(key, pat_id, "done")
