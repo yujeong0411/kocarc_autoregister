@@ -49,6 +49,10 @@ TREE_SEP = " - "
 # 형식: @DT:날짜필드,시필드,분필드
 DT_PREFIX = "@DT:"
 
+# 생년월일 년/월/일 셀렉트 3칸을 1칸으로 합칠 때 2행에 적는 마커. 셀엔 'YYYY-MM-DD'.
+# 형식: @DOB:년필드,월필드,일필드
+DOB_PREFIX = "@DOB:"
+
 # 값칸 + '미상'(_UK) 체크박스를 1칸으로 합칠 때 2행에 적는 마커.
 # 값칸에 '미상'이라 적으면 봇이 체크박스를 누른다. 형식: @VUK:값필드,미상필드
 VUK_PREFIX = "@VUK:"
@@ -417,13 +421,34 @@ def merge_value_uk(specs):
     return out
 
 
+def merge_dob(specs):
+    """연속된 (년, 월, 일) 셀렉트 3개({접두}_YY/_MM/_DD)를 생년월일 한 칸으로 합친다.
+    사용자가 'YYYY-MM-DD'로 적으면 봇이 세 드롭다운으로 분해해 넣는다."""
+    out, i = [], 0
+    while i < len(specs):
+        s = specs[i]
+        m = (re.match(r"^(.*)_YY$", s[1]["name"], re.I)
+             if s[0] == "single" else None)
+        if (m and i + 2 < len(specs)
+                and specs[i + 1][0] == "single" and specs[i + 2][0] == "single"):
+            pre = m.group(1)
+            if (specs[i + 1][1]["name"].upper() == (pre + "_MM").upper()
+                    and specs[i + 2][1]["name"].upper() == (pre + "_DD").upper()):
+                out.append(("dob", s[1], specs[i + 1][1], specs[i + 2][1]))
+                i += 3
+                continue
+        out.append(s)
+        i += 1
+    return out
+
+
 def write_columns(ws, fields, n_rows, list_ctx=None):
     """area/patient 시트 공통: B열부터 컬럼(단일/그룹/일시)을 쓰고 환자키를 채운다.
     반환: (입력 칸 개수, {필드명: 컬럼번호})  ← 컬럼맵은 조건부 서식에서 사용."""
     seen, col = {}, 2
     colmap = {}
     byname = {f["name"]: f for f in fields}
-    for spec in merge_value_uk(merge_datetime(grouped_columns(fields))):
+    for spec in merge_dob(merge_value_uk(merge_datetime(grouped_columns(fields)))):
         if spec[0] == "valuk":
             _, fv, fuk, kw = spec
             colmap[fv["name"]] = col
@@ -451,11 +476,30 @@ def write_columns(ws, fields, n_rows, list_ctx=None):
             seen[disp] = seen.get(disp, 0) + 1
             marker = DT_PREFIX + ",".join(x["name"] for x in dts)
             _write_header(ws, col, disp, marker)
-            prompt = "예: 2026-06-15 05:02  (날짜 시:분)"
+            # 12자리 숫자로 입력하면 셀에 2026-06-15 05:02 로 자동 표시(저장값은 숫자).
+            for r in range(3, 3 + n_rows):
+                ws.cell(row=r, column=col).number_format = "0000-00-00 00\\:00"
+            prompt = "12자리 숫자로 입력하면 2026-06-15 05:02 로 자동 표시 (예: 202606150502)"
             if len(dts) == 4:  # 미상 흡수됨
                 prompt += "  ·  모르면 '미상'"
             dv = DataValidation(showInputMessage=True, promptTitle="일시 입력형식",
                                 prompt=prompt)
+        elif spec[0] == "dob":
+            parts = spec[1:]  # (년, 월, 일 셀렉트)
+            for x in parts:
+                colmap[x["name"]] = col
+            fd = parts[0]
+            disp = fd.get("label") or fd["name"]  # '생년월일'
+            if disp in seen:
+                disp = f"{disp} [{fd['name']}]"
+            seen[disp] = seen.get(disp, 0) + 1
+            marker = DOB_PREFIX + ",".join(x["name"] for x in parts)
+            _write_header(ws, col, disp, marker)
+            # 8자리 숫자로 입력하면 셀에 1970-05-15 로 자동 표시(저장값은 숫자 그대로).
+            for r in range(3, 3 + n_rows):
+                ws.cell(row=r, column=col).number_format = "0000-00-00"
+            dv = DataValidation(showInputMessage=True, promptTitle="생년월일 입력형식",
+                                prompt="8자리 숫자로 입력하면 1970-05-15 로 자동 표시됩니다.")
         elif spec[0] == "single":
             f = spec[1]
             colmap[f["name"]] = col
@@ -571,9 +615,10 @@ def apply_grey_rules(ws, colmap, n_rows):
         ]
     if c4:  # 병원치료결과 하위
         rules += [
-            # 병원퇴원일시(+퇴원형태): 병원치료결과='생존퇴원'일 때만 흰색.
-            (["HOSP_OUT_DATE", "HOSP_OUT_HOUR", "HOSP_OUT_MIN", "HOSP_RESULT_OUT"],
-             f'${c4}3<>"생존퇴원"'),
+            # 병원퇴원일시: 병원치료결과='생존퇴원 - …'(트리 통합)일 때만 흰색.
+            # 퇴원처(HOSP_RESULT_OUT)는 이 부모 드롭다운에 흡수됨.
+            (["HOSP_OUT_DATE", "HOSP_OUT_HOUR", "HOSP_OUT_MIN"],
+             f'LEFT(${c4}3,4)<>"생존퇴원"'),
             # 병원사망일시: 병원치료결과='사망퇴원'일 때만 흰색.
             (["HOSP_DIE_DATE", "HOSP_DIE_HOUR", "HOSP_DIE_MIN"],
              f'${c4}3<>"사망퇴원"'),

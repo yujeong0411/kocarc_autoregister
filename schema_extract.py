@@ -63,6 +63,9 @@ AREAS = [
 MANUAL_TREES = {
     # 음주: ALCOHOL=1(있음) 이면 ALCOHOL_DOSE(빈도) 활성 — 다른 행이라 자동탐지 못 함.
     "prevent": {"ALCOHOL": {"1": "ALCOHOL_DOSE"}},
+    # 병원치료결과=생존퇴원(1) 이면 퇴원처(HOSP_RESULT_OUT: 자택/타병원/호스피스/요양시설)
+    # 를 부모 드롭다운으로 통합 → '생존퇴원 - 자택' 식 잎. (사망퇴원/입원중은 자식 없음)
+    "common": {"HOSP_RESULT": {"1": "HOSP_RESULT_OUT"}},
     # CAG 결과: 자동탐지가 못 잡음(부모 CAG_RE 자체가 CAG_DONE에 의해 disabled 로 시작).
     # 3=Significant Stenosis→SS(1VD..), 4=Vasospasm→VASOS(LAD..) 를 부모칸 드롭다운으로 통합.
     # (88=기타는 텍스트 CAG_RE_ETC 라 트리 제외 → '기타' 잎 + 별도 자유입력칸 유지)

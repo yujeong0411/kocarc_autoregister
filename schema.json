@@ -5486,7 +5486,10 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": true,
+          "tree": {
+            "1": "HOSP_RESULT_OUT"
+          }
         },
         {
           "name": "HOSP_RESULT_OUT",
@@ -5520,7 +5523,8 @@
             }
           ],
           "region": "core",
-          "user_entry": true
+          "user_entry": false,
+          "tree_child": true
         },
         {
           "name": "HOSP_OUT_DATE",

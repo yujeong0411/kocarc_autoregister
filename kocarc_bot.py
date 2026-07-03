@@ -399,10 +399,17 @@ DT_PREFIX = "@DT:"
 
 
 def datetime_targets(raw):
-    """'2026-06-15 05:02'(또는 엑셀 날짜값) → (날짜, 시, 분) 문자열. 없으면 None.
-    시/분은 2자리로 0채움. 날짜만 있으면 시/분은 None."""
+    """'2026-06-15 05:02'(또는 구분자없이 202606150502, 날짜만 20260615) →
+    (날짜, 시, 분) 문자열. 없으면 None. 시/분은 2자리 0채움. 날짜만이면 시/분 None."""
     s = str(raw).strip()
     date = hour = minute = None
+    # 구분자 없는 순수 숫자: 8자리 YYYYMMDD(날짜만) 또는 12자리 YYYYMMDDHHMM
+    g = re.fullmatch(r"(\d{4})(\d{2})(\d{2})(?:(\d{2})(\d{2}))?", s)
+    if g:
+        date = f"{g.group(1)}-{g.group(2)}-{g.group(3)}"
+        if g.group(4):
+            hour, minute = g.group(4), g.group(5)
+        return date, hour, minute
     m = re.search(r"(\d{4})[-./](\d{1,2})[-./](\d{1,2})", s)
     if m:
         date = f"{int(m.group(1)):04d}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
@@ -435,6 +442,45 @@ def fill_datetime(driver, resolver, area_key, marker, raw, conf):
         kind = f["type"] if f else "text"
         try:
             res = driver.execute_script(SET_VALUE_JS, fn, str(val), kind)
+        except UnexpectedAlertPresentException:
+            dismiss_alert(driver)
+            res = "ALERT"
+        if res == "OK":
+            ok += 1
+        else:
+            warn.append(f"{fn}={val}({res})")
+    return ok, warn
+
+
+# 생년월일 년/월/일 통합칸 (build_template.DOB_PREFIX 와 동일해야 함)
+DOB_PREFIX = "@DOB:"
+
+
+def dob_targets(raw):
+    """'1970-05-15'(또는 1970.5.9, 구분자없이 19700515) → (년4, 월2, 일2) 셀렉트
+    value 문자열. 년은 옵션값이 '1970'이라 0채움 없음, 월/일은 2자리.
+    구분자 없이 넣으면 월·일 구분이 안되므로 정확히 8자리만 허용. 형식 안 맞으면 None."""
+    s = str(raw).strip()
+    m = re.search(r"(\d{4})[-./](\d{1,2})[-./](\d{1,2})", s)
+    if not m:
+        m = re.fullmatch(r"(\d{4})(\d{2})(\d{2})", s)  # 구분자 없이 YYYYMMDD
+    if not m:
+        return None
+    return (str(int(m.group(1))), f"{int(m.group(2)):02d}", f"{int(m.group(3)):02d}")
+
+
+def fill_dob(driver, resolver, area_key, marker, raw, conf):
+    """@DOB 통합칸: 'YYYY-MM-DD'를 년/월/일 셀렉트로 분해해 선택."""
+    fields = marker[len(DOB_PREFIX):].split(",")  # [년, 월, 일]
+    vals = dob_targets(raw)
+    if vals is None:
+        return 0, [f"{fields[0]}=생년월일형식({raw})"]
+    ok, warn = 0, []
+    for fn, val in zip(fields, vals):
+        f = resolver.field(area_key, fn)
+        kind = f["type"] if f else "select"
+        try:
+            res = driver.execute_script(SET_VALUE_JS, fn, val, kind)
         except UnexpectedAlertPresentException:
             dismiss_alert(driver)
             res = "ALERT"
@@ -504,6 +550,11 @@ def fill_form1(driver, resolver, area_key, values, conf):
             d_ok, d_warn = fill_datetime(driver, resolver, area_key, name, raw, conf)
             set_ok += d_ok
             warn.extend(d_warn)
+            continue
+        if name.startswith(DOB_PREFIX):
+            b_ok, b_warn = fill_dob(driver, resolver, area_key, name, raw, conf)
+            set_ok += b_ok
+            warn.extend(b_warn)
             continue
         if name.startswith(VUK_PREFIX):
             v_ok, v_warn = fill_valuk(driver, resolver, area_key, name, raw, conf)
