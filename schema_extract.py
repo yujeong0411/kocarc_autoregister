@@ -112,6 +112,10 @@ FIELD_CONTEXT_OVERRIDES = {
         "CAG_RE2": "CAG (24-72시간 이내)", "CAG_RE_ETC2": "CAG (24-72시간 이내)",
         "CAG_RE3": "CAG (7일-퇴원 전)", "CAG_RE_ETC3": "CAG (7일-퇴원 전)",
     },
+    # 병원퇴원/사망 일시: 라벨에 이미 '(생존/사망퇴원인 경우)'가 있어 '병원치료결과 -'
+    # 접두어가 중복이라 컬럼이 너무 길어짐 → context 비워 접두어 제거.
+    # (@DT 합친칸 헤더는 _DATE 필드의 라벨/context만 사용하므로 _DATE만 비우면 됨.)
+    "common": {"HOSP_OUT_DATE": "", "HOSP_DIE_DATE": ""},
 }
 
 # 봇이 자동으로 채우는 시스템 필드 (사람이 입력하지 않음)

@@ -449,6 +449,7 @@ def write_columns(ws, fields, n_rows, list_ctx=None):
     colmap = {}
     byname = {f["name"]: f for f in fields}
     for spec in merge_dob(merge_value_uk(merge_datetime(grouped_columns(fields)))):
+        example = ""  # 3행(회색 예시행)에 넣을 예시값 — 봇은 A열 빈 이 행을 무시
         if spec[0] == "valuk":
             _, fv, fuk, kw = spec
             colmap[fv["name"]] = col
@@ -477,13 +478,14 @@ def write_columns(ws, fields, n_rows, list_ctx=None):
             marker = DT_PREFIX + ",".join(x["name"] for x in dts)
             _write_header(ws, col, disp, marker)
             # 12자리 숫자로 입력하면 셀에 2026-06-15 05:02 로 자동 표시(저장값은 숫자).
-            for r in range(3, 3 + n_rows):
+            for r in range(4, 4 + n_rows):
                 ws.cell(row=r, column=col).number_format = "0000-00-00 00\\:00"
             prompt = "12자리 숫자로 입력하면 2026-06-15 05:02 로 자동 표시 (예: 202606150502)"
             if len(dts) == 4:  # 미상 흡수됨
                 prompt += "  ·  모르면 '미상'"
             dv = DataValidation(showInputMessage=True, promptTitle="일시 입력형식",
                                 prompt=prompt)
+            example = "2026-06-15 09:30"
         elif spec[0] == "dob":
             parts = spec[1:]  # (년, 월, 일 셀렉트)
             for x in parts:
@@ -496,10 +498,11 @@ def write_columns(ws, fields, n_rows, list_ctx=None):
             marker = DOB_PREFIX + ",".join(x["name"] for x in parts)
             _write_header(ws, col, disp, marker)
             # 8자리 숫자로 입력하면 셀에 1970-05-15 로 자동 표시(저장값은 숫자 그대로).
-            for r in range(3, 3 + n_rows):
+            for r in range(4, 4 + n_rows):
                 ws.cell(row=r, column=col).number_format = "0000-00-00"
             dv = DataValidation(showInputMessage=True, promptTitle="생년월일 입력형식",
                                 prompt="8자리 숫자로 입력하면 1970-05-15 로 자동 표시됩니다.")
+            example = "1970-05-15"
         elif spec[0] == "single":
             f = spec[1]
             colmap[f["name"]] = col
@@ -555,15 +558,22 @@ def write_columns(ws, fields, n_rows, list_ctx=None):
         if dv is not None:
             ws.add_data_validation(dv)
             colL = get_column_letter(col)
-            dv.add(f"{colL}3:{colL}{2 + n_rows}")
+            dv.add(f"{colL}3:{colL}{3 + n_rows}")
+        # 3행 = 회색 예시행(입력 무시). 드롭다운이면 첫 항목을 예시로 자동 사용.
+        if not example and dv is not None and dv.type == "list" \
+                and dv.formula1 and dv.formula1.startswith('"'):
+            example = dv.formula1.strip('"').split(",")[0]
+        if example:
+            exc = ws.cell(row=3, column=col, value=example)
+            exc.font = Font(italic=True, color="A6A6A6", size=9)
         col += 1
     for i in range(n_rows):
-        ws.cell(row=3 + i, column=1, value=i + 1)
-    # 데이터 칸(3행~)에 테두리 — 빈 표도 격자가 보이게
-    for r in range(3, 3 + n_rows):
+        ws.cell(row=4 + i, column=1, value=i + 1)   # 환자키: 데이터는 4행부터
+    # 예시행(3행)+데이터 칸에 테두리 — 빈 표도 격자가 보이게
+    for r in range(3, 4 + n_rows):
         for cc in range(1, col):
             ws.cell(row=r, column=cc).border = BORDER
-    ws.freeze_panes = "B3"
+    ws.freeze_panes = "B4"
     return col - 2, colmap
 
 
@@ -581,7 +591,7 @@ def apply_grey_rules(ws, colmap, n_rows):
     (심폐1=ER_CPR1, 심폐2=ER_CPR2 통합칸. 값은 '부모 - 자식' 문자열.)"""
     if "ER_CPR1" not in colmap or "ER_CPR2" not in colmap:
         return
-    last = 2 + n_rows
+    last = 3 + n_rows
     c1 = get_column_letter(colmap["ER_CPR1"])  # 심폐소생술1 통합칸
     c2 = get_column_letter(colmap["ER_CPR2"])  # 심폐소생술2 통합칸
     c3 = get_column_letter(colmap["ER_CPR_RESULT"]) if "ER_CPR_RESULT" in colmap else None
@@ -660,7 +670,7 @@ def apply_grey_community(ws, colmap, n_rows):
     (사이트 JS는 비목격도 활성화하나, 사용자 요청상 '목격'만 활성.)"""
     if "WITNESS" not in colmap:
         return
-    last = 2 + n_rows
+    last = 3 + n_rows
     w = get_column_letter(colmap["WITNESS"])
     seen_cf = set()
     for fn in ["ONSET_DATE", "ONSET_CLOCK_HOUR", "ONSET_CLOCK_MIN", "ONSET_DATE_UK"]:
@@ -689,7 +699,7 @@ def apply_grey_prevent(ws, colmap, n_rows):
     """예방역학: 질환별 진단→치료여부→방법 연쇄 회색.
     진단(예/아니오/미상)≠예 → 치료여부 회색, 치료여부≠예 → 방법(@GROUP) 회색.
     (방법 그룹칸은 colmap 에 첫 멤버명 HTNTX1/DMTX1/DYSLTX1 로 기록됨.)"""
-    last = 2 + n_rows
+    last = 3 + n_rows
 
     def L(name):
         return get_column_letter(colmap[name]) if name in colmap else None
@@ -714,7 +724,7 @@ def apply_grey_relief(ws, colmap, n_rows):
     - 일시칸(제세동/기계식압박/자발순환): 부모가 시행/적용/회복일 때만 흰색
     - 심정지리듬·기타, 기도확보 방법(그룹), 약물 상세(그룹): 부모 활성값일 때만 흰색
     - 약물별 총 용량: '약물 상세' 그룹칸에 해당 약이 선택됐을 때만 흰색(사이트와 동일)."""
-    last = 2 + n_rows
+    last = 3 + n_rows
 
     def L(name):
         return get_column_letter(colmap[name]) if name in colmap else None
@@ -754,7 +764,7 @@ def apply_grey_in_hosp(ws, colmap, n_rows, common_colmap=None):
     #2 회복시각: PRE_ROSC=회복 / #3 심정지리듬: HOSP_ECG=심정지리듬
     #4 에피네프린 두 칸: 미상/미사용(EPINE 그룹) 선택시 회색
     #6/#7/#9 기타 자유입력칸: 부모=기타 일 때만 흰색."""
-    last = 2 + n_rows
+    last = 3 + n_rows
 
     def L(name):
         return get_column_letter(colmap[name]) if name in colmap else None
@@ -806,7 +816,7 @@ def apply_grey_in_hosp(ws, colmap, n_rows, common_colmap=None):
 
 def apply_grey_alive_after(ws, colmap, n_rows, common_colmap=None):
     """소생후단계: 시트 전체 게이팅(공통 심폐1/2) + 시술·검사·목표체온·승압제 종속 회색."""
-    last = 2 + n_rows
+    last = 3 + n_rows
 
     def L(name):
         return get_column_letter(colmap[name]) if name in colmap else None
@@ -882,7 +892,7 @@ def apply_grey_alive_after(ws, colmap, n_rows, common_colmap=None):
 
 def apply_grey_heart(ws, colmap, n_rows):
     """심장검사(항상 활성): 심장효소 ND→단위·일시 회색, 심초음파/CAG 미시행→하위 회색."""
-    last = 2 + n_rows
+    last = 3 + n_rows
 
     def L(name):
         return get_column_letter(colmap[name]) if name in colmap else None
@@ -920,7 +930,7 @@ def apply_grey_y_child(ws, colmap, n_rows):
     """소아소생술(항상 활성, 게이팅 없음): 과거력=기타만 기타칸 활성,
     병원 퇴원시 PCPC=사망/미상이면 추적관찰(6·12개월) 회색,
     12개월 후 생존=생존/사망일 때만 12개월 후 PCPC 활성. 사망일시는 항상 활성."""
-    last = 2 + n_rows
+    last = 3 + n_rows
 
     def L(name):
         return get_column_letter(colmap[name]) if name in colmap else None
