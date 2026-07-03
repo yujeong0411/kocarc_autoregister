@@ -9,8 +9,8 @@ KOCARC eCRF 자동 등록 봇.
   4) 진행상황을 progress.csv 에 기록 (중단 후 재실행 시 이어서)
 
 안전장치:
-  - config.ini 의 dry_run=true 이면 값만 채우고 '저장'은 하지 않음 (눈으로 확인용)
-  - 처음에는 반드시 dry_run 또는 연습 환자 소량으로 시험할 것
+  - 실제 연구 DB에 생성·저장됨. 처음에는 only_keys 로 1명만 시험 후 전체 실행 권장.
+  - 이미 done 인 환자는 progress.csv 로 건너뜀(중복 등록 방지).
 
 주의: 비밀번호는 config.ini(본인 PC) 또는 실행 시 입력. 코드/엑셀에 적지 말 것.
 """
@@ -107,12 +107,10 @@ def load_config():
         "member_id": c.get("member_id", "kocarc_14"),
         "password": c.get("password", ""),
         "excel": c.get("excel", "KOCARC_입력양식.xlsx"),
-        "dry_run": c.getboolean("dry_run", True),
         "headless": c.getboolean("headless", False),
         "areas": [a.strip() for a in c.get("areas", "all").split(",")],
         "pause": c.getfloat("pause", 0.3),
         "only_keys": [k.strip() for k in c.get("only_keys", "").split(",") if k.strip()],
-        "test_pat_id": c.get("test_pat_id", "").strip(),
     }
     if not conf["password"]:
         conf["password"] = getpass.getpass("KOCARC 비밀번호 입력: ")
@@ -616,9 +614,6 @@ def mark_complete(driver):
 
 
 def save_form1(driver, conf):
-    if conf["dry_run"]:
-        log("   (dry_run: 저장 안 함)")
-        return True
     try:
         driver.execute_script("document.form1.submit();")
     except UnexpectedAlertPresentException:
@@ -639,9 +634,6 @@ def create_patient(driver, conf, resolver, prow):
     driver.get(url)
     WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.NAME, "PAT_NM")))
     fill_form1(driver, resolver, "patient_add", prow, conf)
-    if conf["dry_run"]:
-        log("   (dry_run: 환자 생성 건너뜀)")
-        return None
     driver.execute_script("document.form1.submit();")
     time.sleep(1.5)
     txt = dismiss_alert(driver)
@@ -704,7 +696,7 @@ def run_bot(conf, should_stop=None):
     if conf["only_keys"]:
         keys = [k for k in keys if k in conf["only_keys"]]
 
-    log(f"대상 환자 {len(keys)}명, 영역 {len(want_areas)}개, dry_run={conf['dry_run']}")
+    log(f"대상 환자 {len(keys)}명, 영역 {len(want_areas)}개 — 실제 생성·저장")
     progress = load_progress()
 
     driver = make_driver(conf)
@@ -719,32 +711,17 @@ def run_bot(conf, should_stop=None):
                 continue
             log(f"=== 환자키 {key} 처리 시작 ===")
             try:
-                if conf["dry_run"] and conf["test_pat_id"]:
-                    # 검증 모드: 기존 연습환자에 모든 영역을 채우되 저장 안 함
-                    pat_id = conf["test_pat_id"]
-                    log(f"   검증 모드 — 연습환자 PAT_ID={pat_id} 에 채우기(저장 안 함)")
-                elif conf["dry_run"]:
-                    # 환자등록 페이지만 채워보고 정지
-                    url = conf["base_url"] + PATIENT_ADD_PATH
-                    driver.get(url)
-                    WebDriverWait(driver, 20).until(
-                        EC.presence_of_element_located((By.NAME, "PAT_NM")))
-                    n = fill_form1(driver, resolver, "patient_add", patients[key], conf)
-                    log(f"   [환자등록] {n}개 채움 (dry_run: 등록 안 함). "
-                        f"전체 영역 검증은 test_pat_id 를 설정하세요.")
-                    append_progress(key, None, "dry_run_fill")
+                pat_id = create_patient(driver, conf, resolver, patients[key])
+                if not pat_id:
+                    log("   환자 PAT_ID 확인 실패 — 수동 확인 필요. 건너뜀")
+                    append_progress(key, None, "no_pat_id")
                     continue
-                else:
-                    pat_id = create_patient(driver, conf, resolver, patients[key])
-                    if not pat_id:
-                        log("   환자 PAT_ID 확인 실패 — 수동 확인 필요. 건너뜀")
-                        append_progress(key, None, "no_pat_id")
-                        continue
-                    log(f"   PAT_ID = {pat_id}")
+                log(f"   PAT_ID = {pat_id}")
 
                 for area_key, sheet, path in want_areas:
                     vals = area_data.get(area_key, {}).get(key)
-                    if not vals:
+                    # Comment Log는 입력이 없어도 저장(완료체크+save)이 필요 → 빈칸이어도 진행.
+                    if not vals and area_key != "comment":
                         continue
                     target = f"{conf['base_url']}{path}?PAT_ID={pat_id}"
                     driver.get(target)
@@ -754,13 +731,13 @@ def run_bot(conf, should_stop=None):
                     except TimeoutException:
                         log(f"   [{area_key}] 페이지 로딩 실패")
                         continue
-                    n = fill_form1(driver, resolver, area_key, vals, conf)
-                    log(f"   [{area_key}] {n}개 입력")
-                    mark_complete(driver)
+                    n = fill_form1(driver, resolver, area_key, vals, conf) if vals else 0
+                    log(f"   [{area_key}] {n}개 입력" + (" (빈 저장)" if not vals else ""))
+                    if area_key != "comment":   # Comment Log은 완료체크 없이 저장만
+                        mark_complete(driver)
                     save_form1(driver, conf)
-                status = "verified(dry)" if conf["dry_run"] else "done"
-                append_progress(key, pat_id, status)
-                log(f"=== 환자키 {key} 완료 (PAT_ID={pat_id}, {status}) ===")
+                append_progress(key, pat_id, "done")
+                log(f"=== 환자키 {key} 완료 (PAT_ID={pat_id}) ===")
             except Exception as e:
                 log(f"   오류(환자키 {key}): {e}")
                 append_progress(key, None, f"error:{e}")

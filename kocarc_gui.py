@@ -5,8 +5,7 @@ KOCARC 환자 자동등록 — 창(GUI) 프로그램.
 명령어 없이 클릭으로 사용:
   - 엑셀 양식 만들기
   - 로그인 정보 입력
-  - 검증(저장 안 함) / 실전(실제 저장) 선택
-  - 시작 / 중지, 실시간 로그 확인
+  - 시작 / 중지, 실시간 로그 확인 (실제 연구 DB에 생성·저장)
 
 파이썬으로 실행:  uv run python kocarc_gui.py
 실행파일(.exe)로 배포하면 파이썬 없이도 더블클릭으로 사용 가능.
@@ -169,23 +168,13 @@ class App:
         ttk.Entry(g2, textvariable=self.pw_var, show="●").grid(row=2, column=1, sticky="ew", pady=4)
         g2.columnconfigure(1, weight=1)
 
-        # --- 3) 모드 ---
-        c3 = self._card(body, "3) 실행 모드")
-        self.mode_var = tk.StringVar(value="verify")
-        self._radio(c3, "검증  ·  값만 채우고 저장하지 않음 (안전)", "verify",
-                    self.mode_var, self._toggle_mode).pack(fill="x", anchor="w", pady=(0, 2))
-        self._radio(c3, "실전  ·  실제로 환자 생성 + 저장", "real",
-                    self.mode_var, self._toggle_mode).pack(fill="x", anchor="w", pady=(2, 8))
-
+        # --- 3) 옵션 ---
+        c3 = self._card(body, "3) 옵션")
         g3 = tk.Frame(c3, bg=CARD)
         g3.pack(fill="x")
-        self._field_label(g3, "연습환자 PAT_ID (검증용)", 0)
-        self.test_var = tk.StringVar()
-        self.test_entry = ttk.Entry(g3, textvariable=self.test_var)
-        self.test_entry.grid(row=0, column=1, sticky="ew", pady=4)
-        self._field_label(g3, "특정 환자키만 (예: 1,2 / 비우면 전체)", 1)
+        self._field_label(g3, "특정 환자키만 (예: 1,2 / 비우면 전체)", 0)
         self.keys_var = tk.StringVar()
-        ttk.Entry(g3, textvariable=self.keys_var).grid(row=1, column=1, sticky="ew", pady=4)
+        ttk.Entry(g3, textvariable=self.keys_var).grid(row=0, column=1, sticky="ew", pady=4)
         g3.columnconfigure(1, weight=1)
 
         self.headless_var = tk.BooleanVar(value=False)
@@ -195,8 +184,7 @@ class App:
         # 카드 영역 전체에 마우스 휠 스크롤 연결
         self._bind_wheel(body)
 
-        self._toggle_mode()
-        self._append("준비됨. 검증 모드로 먼저 확인하세요.")
+        self._append("준비됨. 처음엔 '특정 환자키만'에 1 을 넣어 1명부터 시험하세요.")
         self.root.after(100, self._drain)
 
     # ---------- 스타일 ----------
@@ -264,29 +252,6 @@ class App:
     def _field_label(self, parent, text, row):
         tk.Label(parent, text=text, bg=CARD, fg=INK, font=self.f_body, anchor="w"
                  ).grid(row=row, column=0, sticky="w", padx=(0, 12), pady=4)
-
-    def _radio(self, parent, text, value, var, command=None):
-        """표시기를 직접 그리는 라디오 (글자 배율에 맞춰 크게 보임)."""
-        row = tk.Frame(parent, bg=CARD, cursor="hand2")
-        glyph = tk.Label(row, text="", bg=CARD, font=self.f_glyph)
-        glyph.pack(side="left")
-        lbl = tk.Label(row, text=text, bg=CARD, fg=INK, font=self.f_body)
-        lbl.pack(side="left", padx=(8, 0))
-
-        def on_click(_=None):
-            var.set(value)
-            if command:
-                command()
-
-        def refresh(*_):
-            sel = var.get() == value
-            glyph.configure(text="◉" if sel else "○", fg=ACCENT if sel else "#9aa3b2")
-
-        for w in (row, glyph, lbl):
-            w.bind("<Button-1>", on_click)
-        var.trace_add("write", refresh)
-        refresh()
-        return row
 
     def _check(self, parent, text, var, command=None):
         """표시기를 직접 그리는 체크박스 (글자 배율에 맞춰 크게 보임)."""
@@ -361,10 +326,6 @@ class App:
         return p if os.path.exists(p) else ""
 
     # ---------- UI 동작 ----------
-    def _toggle_mode(self):
-        verify = self.mode_var.get() == "verify"
-        self.test_entry.configure(state="normal" if verify else "disabled")
-
     def pick_excel(self):
         p = filedialog.askopenfilename(
             title="입력 엑셀 선택",
@@ -397,7 +358,6 @@ class App:
         login = self.login_var.get().strip() or DEFAULT_LOGIN
         sp = urlsplit(login)
         base = f"{sp.scheme}://{sp.netloc}" if sp.scheme else "https://ecrf.kr"
-        verify = self.mode_var.get() == "verify"
         keys = [k.strip() for k in self.keys_var.get().split(",") if k.strip()]
         return {
             "base_url": base.rstrip("/"),
@@ -405,12 +365,10 @@ class App:
             "member_id": self.id_var.get().strip() or DEFAULT_ID,
             "password": self.pw_var.get(),
             "excel": self.excel_var.get().strip(),
-            "dry_run": verify,
             "headless": bool(self.headless_var.get()),
             "areas": ["all"],
             "pause": 0.3,
             "only_keys": keys,
-            "test_pat_id": self.test_var.get().strip() if verify else "",
             "wait_on_finish": False,
         }
 
@@ -424,12 +382,11 @@ class App:
         if not conf["password"]:
             messagebox.showwarning(APP_TITLE, "비밀번호를 입력하세요.")
             return
-        if not conf["dry_run"]:
-            if not messagebox.askyesno(
-                    APP_TITLE,
-                    "실전 모드입니다. 실제 연구 DB에 환자가 생성·저장됩니다.\n계속할까요?\n\n"
-                    "(처음에는 '특정 환자키만'에 1 만 넣어 1명으로 시험을 권장)"):
-                return
+        if not messagebox.askyesno(
+                APP_TITLE,
+                "실제 연구 DB에 환자가 생성·저장됩니다.\n계속할까요?\n\n"
+                "(처음에는 '특정 환자키만'에 1 만 넣어 1명으로 시험을 권장)"):
+            return
 
         # 로그 라우팅
         bot.set_log(lambda line: self.q.put(line))
