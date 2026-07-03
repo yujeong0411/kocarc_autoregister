@@ -78,9 +78,6 @@ class App:
         header.pack(fill="x")
         hin = tk.Frame(header, bg=HEADER, padx=22, pady=14)
         hin.pack(fill="x")
-        self._logo_img = self._load_logo(int(52 * s))
-        if self._logo_img is not None:
-            tk.Label(hin, image=self._logo_img, bg=HEADER).pack(side="left", padx=(0, 14))
         htxt = tk.Frame(hin, bg=HEADER)
         htxt.pack(side="left", fill="x", expand=True)
         tk.Label(htxt, text=APP_TITLE, bg=HEADER, fg="#ffffff",
@@ -324,18 +321,6 @@ class App:
         widget.bind("<MouseWheel>", self._on_wheel)
         for ch in widget.winfo_children():
             self._bind_wheel(ch)
-
-    def _load_logo(self, target_h):
-        """logo.png 를 PhotoImage 로 로드해 target_h 높이에 맞게 정수배 축소. 없으면 None.
-        (bot.resource_path 로 소스·exe(_MEIPASS) 양쪽에서 찾음)"""
-        try:
-            img = tk.PhotoImage(file=bot.resource_path("logo.png"))
-        except Exception:
-            return None
-        h = img.height()
-        if h > target_h:
-            img = img.subsample(max(1, round(h / target_h)))
-        return img
 
     # ---------- 경로 도우미 ----------
     def _app_dir(self):
