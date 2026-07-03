@@ -38,6 +38,8 @@ MANIFEST
 #   before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+# 손수 수정한 빌드 설정(datas/PIL제외/아이콘)이라 이 spec만 추적
+!KOCARC자동등록.spec
 
 # Installer logs
 pip-log.txt
