@@ -61,13 +61,11 @@ class App:
         root.geometry(f"{int(820 * s)}x{int(740 * s)}")
         root.minsize(int(680 * s), int(460 * s))
         root.configure(bg=BG)
-        # 창 아이콘(제목표시줄·작업표시줄) = 로고
-        self._icon_img = self._load_logo(64)
-        if self._icon_img is not None:
-            try:
-                root.iconphoto(True, self._icon_img)
-            except Exception:
-                pass
+        # 창 아이콘(제목표시줄·작업표시줄) = 로고. 정사각 프레임 .ico 라 찌그러짐 없음.
+        try:
+            root.iconbitmap(bot.resource_path("logo.ico"))
+        except Exception:
+            pass
         self.q = queue.Queue()
         self.stop_event = threading.Event()
         self.worker = None
