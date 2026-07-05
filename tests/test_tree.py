@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 """조건부 트리(@TREE) 라운드트립 자체검증 (브라우저 불필요).
 build_template 이 만든 잎 라벨을 kocarc_bot 이 다시 (부모값, 자식값)으로
-정확히 복원하는지 확인한다. 실행: uv run python test_tree.py"""
+정확히 복원하는지 확인한다. 실행: uv run python tests/test_tree.py"""
+import os
+import sys
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
 from build_template import tree_leaves, load_schema
 from kocarc_bot import Resolver, tree_targets, parse_tree_marker
 
 
 def main():
-    schema = load_schema("schema.json")
+    schema = load_schema(os.path.join(ROOT, "schema.json"))
     resolver = Resolver(schema)
     checked = 0
     for area in schema["areas"]:

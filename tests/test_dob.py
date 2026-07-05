@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """@DOB 생년월일 통합칸 파싱 검증. 봇이 'YYYY-MM-DD'를 (년,월,일) 셀렉트 value로
 정확히 분해하는지 확인(년4자리·월/일 2자리 0채움, 슬래시/점 구분자, 형식오류=None).
-실행: uv run python test_dob.py"""
+실행: uv run python tests/test_dob.py"""
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from kocarc_bot import dob_targets
 
 CASES = [

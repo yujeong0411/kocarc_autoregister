@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('schema.json', '.'), ('logo.ico', '.')]
+datas = [('schema.json', '.'), ('assets/logo.ico', 'assets')]
 binaries = []
 hiddenimports = []
 tmp_ret = collect_all('selenium')
@@ -42,5 +42,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['logo.ico'],
+    icon=['assets/logo.ico'],
 )

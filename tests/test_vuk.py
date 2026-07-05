@@ -2,12 +2,14 @@
 """@VUK(값+미상 통합) 및 MULTI_MOVE 라벨 교정 검증.
 - 봇 resolver 가 교정된 MULTI_MOVE 라벨을 올바른 값으로 매칭하는지
 - fill_valuk 분기 로직(미상→체크박스, 그 외→값입력)이 맞는지
-실행: uv run python test_vuk.py"""
+실행: uv run python tests/test_vuk.py"""
 import json
 import os
+import sys
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # 리포 루트
+sys.path.insert(0, BASE)
 from kocarc_bot import Resolver, VUK_PREFIX
 
-BASE = os.path.dirname(os.path.abspath(__file__))
 with open(os.path.join(BASE, "schema.json"), encoding="utf-8") as f:
     R = Resolver(json.load(f))
 

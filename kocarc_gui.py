@@ -63,7 +63,7 @@ class App:
         root.configure(bg=BG)
         # 창 아이콘(제목표시줄·작업표시줄) = 로고. 정사각 프레임 .ico 라 찌그러짐 없음.
         try:
-            root.iconbitmap(bot.resource_path("logo.ico"))
+            root.iconbitmap(bot.resource_path("assets/logo.ico"))
         except Exception:
             pass
         self.q = queue.Queue()

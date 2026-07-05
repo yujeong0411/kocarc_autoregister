@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """@DT 통합 일시칸 파싱 검증. 봇이 '2026-06-15 05:02'를 (날짜,시,분)으로
 정확히 분해하는지 확인(0채움/날짜만/엑셀 datetime 문자열 대응).
-실행: uv run python test_dt.py"""
+실행: uv run python tests/test_dt.py"""
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from kocarc_bot import datetime_targets
 
 CASES = [
