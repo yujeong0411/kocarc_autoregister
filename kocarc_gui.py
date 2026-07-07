@@ -188,6 +188,19 @@ class App:
         self._check(c3, "브라우저 창 숨기기", self.headless_var
                     ).pack(fill="x", anchor="w", pady=(8, 0))
 
+        self.fresh_var = tk.BooleanVar(value=False)
+        self._check(c3, "처음부터 새로 시작 (이전 진행기록 지우기)", self.fresh_var
+                    ).pack(fill="x", anchor="w", pady=(10, 0))
+        tk.Label(
+            c3,
+            text=("• 새 환자 명단으로 '처음부터' 등록할 때만 체크하세요.\n"
+                  "• 이전 등록 기록(progress.csv)을 지웁니다. 그래야 엑셀을 비우고\n"
+                  "   환자키를 1부터 다시 써도, 이미 끝난 환자로 잘못 알고 건너뛰지 않습니다.\n"
+                  "• 하던 작업을 '이어서' 할 때는 체크하지 마세요 (기록이 사라집니다).\n"
+                  "• 참고: 지난번에 전원 정상 완료됐다면 기록은 이미 자동으로 지워져 있습니다."),
+            bg=CARD, fg=MUTED, font=self.f_small, justify="left", anchor="w"
+        ).pack(fill="x", anchor="w", padx=(28, 0), pady=(3, 0))
+
         # 카드 영역 전체에 마우스 휠 스크롤 연결
         self._bind_wheel(body)
 
@@ -373,6 +386,7 @@ class App:
             "password": self.pw_var.get(),
             "excel": self.excel_var.get().strip(),
             "headless": bool(self.headless_var.get()),
+            "fresh_start": bool(self.fresh_var.get()),
             "areas": ["all"],
             "pause": 0.3,
             "only_keys": keys,
@@ -389,10 +403,13 @@ class App:
         if not conf["password"]:
             messagebox.showwarning(APP_TITLE, "비밀번호를 입력하세요.")
             return
-        if not messagebox.askyesno(
-                APP_TITLE,
-                "실제 연구 DB에 환자가 생성·저장됩니다.\n계속할까요?\n\n"
-                "(처음에는 '특정 환자키만'에 1 만 넣어 1명으로 시험을 권장)"):
+        msg = "실제 연구 DB에 환자가 생성·저장됩니다.\n계속할까요?\n\n"
+        if conf.get("fresh_start"):
+            msg += ("⚠ [처음부터 새로 시작]이 켜져 있습니다.\n"
+                    "이전 진행기록을 모두 지우고 시작합니다.\n"
+                    "(이어서 하던 작업이 있으면 사라집니다.)\n\n")
+        msg += "(처음에는 '특정 환자키만'에 1 만 넣어 1명으로 시험을 권장)"
+        if not messagebox.askyesno(APP_TITLE, msg):
             return
 
         # 로그 라우팅

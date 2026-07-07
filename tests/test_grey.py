@@ -139,22 +139,27 @@ STEROID_CASES = [  # (종류값, [종류기타 흰색?, 투여량단위 흰색?]
     ("미시행",          (False, False)),
     ("",               (False, False)),
 ]
-# 소생후단계 시트 게이팅: 공통 심폐1=시행20분이내중단-자발순환회복 또는 심폐2=시행-Sustained ROSC
-def alive_gate_grey(c1, c2):
-    return not (c1 == "시행 20분이내 중단 - 자발순환회복" or c2 == "시행 - Sustained ROSC")
-def proc_grey(v):  return v in ("", "미시행", "미상")        # 시술류(REPER/CLOT/ANGIO/CA/CAB)
+def proc_grey(v):  return v in ("", "미시행", "미상")        # 시술류(REPER/CLOT/ANGIO/CA/CAB) + ECMO 시작/완료시점
 def hyper_grey(v): return v != "ROSC 24시간 이내"             # 승압제 종류(24시간 이내만 활성)
-ALIVE_GATE_CASES = [  # (심폐1, 심폐2, 흰색?)
-    ("시행 20분이내 중단 - 자발순환회복", "미시행", True),
-    ("미시행 - DOA", "시행 - Sustained ROSC", True),
-    ("20분이상 시행", "시행 - Sustained ROSC없이 Any ROSC만", False),
-    ("", "", False),
-]
 PROC_CASES = [("등록병원 시행", True), ("타병원 시행 후 내원", True),
               ("미시행", False), ("미상", False), ("", False)]
+# ECMO 시행(EX_CIRC_EXE)=미시행/미상/미입력이면 시작·완료시점 회색 → proc_grey 동일 규칙
+ECMO_CASES = [("등록병원 시행", True), ("타병원 시행 후 내원", True),
+              ("미시행", False), ("미상", False), ("", False)]
 EXEC_CASES = [("시행함", True), ("미시행", False), ("미상", False), ("", False)]  # relief_grey(v,"시행함")
-# 목표체온조절 하위(저온법4종·일시·온도·속도) 전부: 시행일 때만 흰색 relief_grey(v,"시행")
+# 목표체온조절 시작/재가온 '일시': 시행일 때만 흰색(그 외엔 회색 비활성화). relief_grey(v,"시행")
 LAW_TEMP_CASES = [("시행", True), ("미시행", False), ("미상", False), ("", False)]
+# 저온법 방법4종(EX/IN_LAW_TEMP): TTM=미시행인데 미시행/빈칸 아닌 값이면 빨강(모순)
+def law_method_red(tt, m): return tt == "미시행" and m not in ("", "미시행")
+LAW_METHOD_CASES = [  # (목표체온조절, 방법값, 빨강?)
+    ("미시행", "등록병원 시행", True), ("미시행", "미상", True),
+    ("미시행", "미시행", False), ("미시행", "", False),
+    ("시행", "등록병원 시행", False), ("미상", "등록병원 시행", False),
+]
+# 목표온도·재가온속도: '미시행' 옵션 없음 → TTM=미시행인데 값 있으면 빨강(빈칸이어야)
+def law_ts_red(tt, v): return tt == "미시행" and v != ""
+LAW_TS_CASES = [("미시행", "32-34도", True), ("미시행", "", False),
+                ("시행", "32-34도", False), ("미상", "36도", False)]
 HYPER_CASES = [("ROSC 24시간 이내", True), ("ROSC 24시간 이후", False), ("미사용", False), ("", False)]
 
 # 소아소생술: 12개월 후 생존=생존/사망일 때만 12개월 후 PCPC 활성, 과거력=기타만 기타칸 활성
@@ -196,6 +201,8 @@ def main():
         assert (not dose_grey(gval, drug)) == w_ok, ("약물용량", gval, drug)
     for pval, white, w_ok in IN_HOSP_CASES:
         assert (not relief_grey(pval, white)) == w_ok, ("병원단계", pval, white)
+    for v, w_ok in ECMO_CASES:
+        assert (not proc_grey(v)) == w_ok, ("ECMO시작완료시점", v)
     for gv, w_ok in EPINE_CASES:  # 그룹값 있으면 회색
         assert (gv == "") == w_ok, ("에피네프린", gv)
     for v, w_ok in UNIT_CASES:
@@ -203,14 +210,16 @@ def main():
     for k, (w_etc, w_unit) in STEROID_CASES:
         assert (not steroid_etc_grey(k)) == w_etc,   ("Steroid종류기타", k)
         assert (not steroid_unit_grey(k)) == w_unit, ("Steroid단위", k)
-    for c1, c2, w_ok in ALIVE_GATE_CASES:
-        assert (not alive_gate_grey(c1, c2)) == w_ok, ("소생후게이팅", c1, c2)
     for v, w_ok in PROC_CASES:
         assert (not proc_grey(v)) == w_ok, ("시술류", v)
     for v, w_ok in EXEC_CASES:
         assert (not relief_grey(v, "시행함")) == w_ok, ("시행함류", v)
     for v, w_ok in LAW_TEMP_CASES:
-        assert (not relief_grey(v, "시행")) == w_ok, ("목표체온", v)
+        assert (not relief_grey(v, "시행")) == w_ok, ("목표체온일시", v)
+    for tt, m, r in LAW_METHOD_CASES:
+        assert law_method_red(tt, m) == r, ("저온법방법", tt, m)
+    for tt, v, r in LAW_TS_CASES:
+        assert law_ts_red(tt, v) == r, ("목표온도속도", tt, v)
     for v, w_ok in HYPER_CASES:
         assert (not hyper_grey(v)) == w_ok, ("승압제", v)
     for v, w_ok in Y12_PCPC_CASES:
@@ -222,8 +231,9 @@ def main():
     n = (len(CASES) + len(RESULT_CASES) + len(HOSP_CASES) + len(FU6_CASES)
          + len(CPC_CASES) + len(PREVENT_CASES) + len(COMMUNITY_CASES) + len(ETC_CASES)
          + len(RELIEF_CASES) + len(DOSE_CASES) + len(IN_HOSP_CASES) + len(EPINE_CASES)
-         + len(UNIT_CASES) + len(STEROID_CASES) + len(ALIVE_GATE_CASES) + len(PROC_CASES)
-         + len(EXEC_CASES) + len(LAW_TEMP_CASES) + len(HYPER_CASES)
+         + len(UNIT_CASES) + len(STEROID_CASES) + len(PROC_CASES) + len(ECMO_CASES)
+         + len(EXEC_CASES) + len(LAW_TEMP_CASES) + len(LAW_METHOD_CASES) + len(LAW_TS_CASES)
+         + len(HYPER_CASES)
          + len(Y12_PCPC_CASES) + len(YCHILD_ETC_CASES) + len(Y_FU_CASES))
     print(f"OK: {n} 시나리오 회색/흰색/경고 진리표 통과")
 

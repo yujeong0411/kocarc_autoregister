@@ -613,35 +613,57 @@ def mark_complete(driver):
     return res
 
 
-def save_form1(driver, conf):
+def submit_with_validation(driver):
+    """사이트 저장버튼(checkInput)을 눌러 사이트 자체 검증을 태운다.
+       - 검증 통과 → checkInput 이 내부에서 form1.submit() → 페이지 이동(저장됨)
+       - 검증 실패 → alert(경고문) 뜨고 저장 안 함(페이지 그대로)
+    반환 (ok, msg): ok=저장됨 여부, msg=alert 텍스트(없으면 None).
+    ponytail: 성공 판정은 alert 유무가 아니라 '페이지 이동' 기준 — 환자등록의
+    '만 19세 미만'처럼 alert 만 띄우고 저장은 진행되는 비차단 안내가 있어서."""
+    prev = driver.current_url
     try:
-        driver.execute_script("document.form1.submit();")
+        driver.find_element(By.CSS_SELECTOR, "a[href*='checkInput']").click()
     except UnexpectedAlertPresentException:
         pass
-    time.sleep(1.0)
+    except NoSuchElementException:
+        try:                                  # 저장버튼 링크를 못 찾으면 최후수단으로 직접 호출
+            driver.execute_script("checkInput();")
+        except UnexpectedAlertPresentException:
+            pass
+    time.sleep(1.2)
     txt = dismiss_alert(driver)
-    if txt:
-        log(f"   저장 후 알림: {txt}")
+    moved = driver.current_url != prev
+    return moved, txt
+
+
+def save_form1(driver, conf):
+    ok, msg = submit_with_validation(driver)
+    if ok and msg:
+        log(f"   저장 후 알림: {msg}")
     time.sleep(0.5)
-    return True
+    return ok, msg
 
 
 # =====================================================================
 # 메인 처리
 # =====================================================================
 def create_patient(driver, conf, resolver, prow):
+    """환자 생성. 반환 (pat_id, blocked):
+       blocked=True  → 사이트 검증에 막혀 생성 안 됨(엑셀 수정 후 재시도 안전)
+       blocked=False → 저장은 진행됨(pat_id 있으면 성공, None 이면 PAT_ID 확인 실패=수동)"""
     url = conf["base_url"] + PATIENT_ADD_PATH
     driver.get(url)
     WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.NAME, "PAT_NM")))
     fill_form1(driver, resolver, "patient_add", prow, conf)
-    driver.execute_script("document.form1.submit();")
-    time.sleep(1.5)
-    txt = dismiss_alert(driver)
-    if txt:
-        log(f"   등록 알림: {txt}")
+    ok, msg = submit_with_validation(driver)
+    if not ok:
+        log(f"   ⚠ 환자생성 검증 실패로 저장 안 됨: {msg}")
+        return None, True          # blocked=True → 생성 안 됨(재시도 안전)
+    if msg:
+        log(f"   등록 알림: {msg}")
     time.sleep(1.0)
     pat_id = find_pat_id(driver)
-    return pat_id
+    return pat_id, False           # blocked=False → 저장 진행됨(pat_id None 이면 수동확인)
 
 
 def load_progress():
@@ -662,6 +684,35 @@ def append_progress(key, pat_id, status):
         if new:
             w.writerow(["time", "key", "pat_id", "status"])
         w.writerow([datetime.now().isoformat(timespec="seconds"), key, pat_id or "", status])
+
+
+def resume_decision(prev):
+    """progress.csv 의 이 환자 마지막 행(prev, 없으면 None)으로 이번 실행 동작 결정.
+    중복생성 방지가 핵심: 이미 생성된 환자는 절대 재생성하지 않는다.
+    반환 (action, pat_id):
+      'done'   완료 → 건너뜀
+      'create' 생성된 적 없음 → 새로 생성
+      'reuse'  이미 생성됨(pat_id 있음) → 영역만 다시 저장
+      'manual' 생성 여부 불명(pat_id 없음) → 자동 재생성 금지, 수동 확인"""
+    if prev is None:
+        return "create", None
+    status = prev.get("status")
+    pat_id = prev.get("pat_id") or None
+    if status == "done":
+        return "done", pat_id
+    if pat_id:
+        return "reuse", pat_id            # 이미 생성됨 → 재생성 금지
+    if status == "create_fail":
+        return "create", None             # 검증에 막혀 생성 안 됨 → 재시도 안전
+    return "manual", None                 # 생성 여부 불명 → 수동 확인
+
+
+def all_done(patient_keys, progress):
+    """엑셀의 모든 환자키가 progress 에서 done 이면 True(배치 완주).
+    빈 목록이면 False(삭제 트리거 안 함)."""
+    keys = list(patient_keys)
+    return bool(keys) and all(
+        (progress.get(k) or {}).get("status") == "done" for k in keys)
 
 
 def run_bot(conf, should_stop=None):
@@ -697,6 +748,11 @@ def run_bot(conf, should_stop=None):
         keys = [k for k in keys if k in conf["only_keys"]]
 
     log(f"대상 환자 {len(keys)}명, 영역 {len(want_areas)}개 — 실제 생성·저장")
+    if conf.get("fresh_start"):
+        p = os.path.join(app_dir(), "progress.csv")
+        if os.path.exists(p):
+            os.remove(p)
+            log("처음부터 새로 시작 — 이전 진행기록(progress.csv) 삭제.")
     progress = load_progress()
 
     driver = make_driver(conf)
@@ -706,19 +762,31 @@ def run_bot(conf, should_stop=None):
             if stop():
                 log("중지 요청 — 종료합니다.")
                 break
-            if key in progress and progress[key]["status"] == "done":
+            action, pat_id = resume_decision(progress.get(key))
+            if action == "done":
                 log(f"환자키 {key}: 이미 완료 — 건너뜀")
+                continue
+            if action == "manual":
+                log(f"환자키 {key}: 이전 실행에서 생성됐을 수 있으나 PAT_ID 미기록 "
+                    f"— 중복 위험이라 자동 재생성 금지. 수동 확인 필요. 건너뜀")
                 continue
             log(f"=== 환자키 {key} 처리 시작 ===")
             try:
-                pat_id = create_patient(driver, conf, resolver, patients[key])
-                if not pat_id:
-                    log("   환자 PAT_ID 확인 실패 — 수동 확인 필요. 건너뜀")
-                    append_progress(key, None, "no_pat_id")
-                    continue
-                log(f"   PAT_ID = {pat_id}")
+                if action == "reuse":
+                    log(f"   기존 PAT_ID 재사용(중복생성 방지) = {pat_id}")
+                else:  # create
+                    pat_id, blocked = create_patient(driver, conf, resolver, patients[key])
+                    if not pat_id:
+                        st = "create_fail" if blocked else "no_pat_id"
+                        note = ("검증차단(엑셀 수정 후 재시도 가능)" if blocked
+                                else "PAT_ID 확인 실패(수동 확인 필요)")
+                        log(f"   환자 생성 실패 — {note}. 건너뜀")
+                        append_progress(key, None, st)
+                        continue
+                    log(f"   PAT_ID = {pat_id}")
 
-                # 모든 영역을 빈칸이어도 저장하고 넘어감(건너뛰지 않음).
+                # 각 영역을 채우고 저장. 검증에 막힌(저장 안 된) 영역은 모아 둔다.
+                failed = []
                 for area_key, sheet, path in want_areas:
                     vals = area_data.get(area_key, {}).get(key)
                     target = f"{conf['base_url']}{path}?PAT_ID={pat_id}"
@@ -728,20 +796,42 @@ def run_bot(conf, should_stop=None):
                             EC.presence_of_element_located((By.NAME, "PAT_ID")))
                     except TimeoutException:
                         log(f"   [{area_key}] 페이지 로딩 실패")
+                        failed.append(area_key)
                         continue
                     n = fill_form1(driver, resolver, area_key, vals, conf) if vals else 0
                     log(f"   [{area_key}] {n}개 입력" + (" (빈 저장)" if not vals else ""))
                     # 완료체크(핵심변수): comment 와 '빈 y_child(소아 아님)'만 생략, 나머지는 무조건.
                     if not (area_key == "comment" or (area_key == "y_child" and not vals)):
                         mark_complete(driver)
-                    save_form1(driver, conf)
-                append_progress(key, pat_id, "done")
-                log(f"=== 환자키 {key} 완료 (PAT_ID={pat_id}) ===")
+                    ok, msg = save_form1(driver, conf)
+                    if not ok:
+                        failed.append(area_key)
+                        log(f"   ⚠ [{area_key}] 검증 실패로 저장 안 됨: {msg}")
+
+                if failed:
+                    append_progress(key, pat_id, "partial:" + ",".join(failed))
+                    log(f"=== 환자키 {key} 부분완료 — 실패영역: {','.join(failed)} "
+                        f"(엑셀 수정 후 재실행하면 이 환자 영역만 다시 저장) ===")
+                else:
+                    append_progress(key, pat_id, "done")
+                    log(f"=== 환자키 {key} 완료 (PAT_ID={pat_id}) ===")
             except Exception as e:
                 log(f"   오류(환자키 {key}): {e}")
-                append_progress(key, None, f"error:{e}")
+                append_progress(key, pat_id, f"error:{e}")   # pat_id 보존 → 재실행 시 중복생성 방지
                 dismiss_alert(driver)
         log("전체 처리 종료")
+        # 이 엑셀의 모든 환자가 done 이면 progress.csv 삭제 → 다음 배치는 키 재사용 안전.
+        # (미완료가 하나라도 있으면 유지 → 재실행 시 이어서/실패건만 재시도.)
+        final = load_progress()
+        prog_path = os.path.join(app_dir(), "progress.csv")
+        if all_done(patients, final):
+            if os.path.exists(prog_path):
+                os.remove(prog_path)
+            log(f"모든 환자({len(patients)}명) 완료 — progress.csv 삭제(다음 실행은 처음부터).")
+        elif os.path.exists(prog_path):
+            remaining = [k for k in patients if (final.get(k) or {}).get("status") != "done"]
+            log(f"미완료 {len(remaining)}명 → progress.csv 유지(재실행 시 이어서). "
+                f"예: {remaining[:10]}" + (" ..." if len(remaining) > 10 else ""))
     finally:
         if conf.get("wait_on_finish") and not conf["headless"]:
             try:

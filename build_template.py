@@ -123,6 +123,7 @@ LABEL_OVERRIDES = {
     "HOSP_RESULT_OUT": "병원치료결과 (퇴원처)",  # 자택/타병원전원/호스피스/요양시설
     "EPINE_TOT": "에피네프린 용량 (응급실 CPR 시행 환자)",
     "EPINE_ROSC": "에피네프린 용량 (Sustained ROSC 환자)",
+    "MULTI_MOVE": "출동 종류",  # 원본 라벨 '다중출동' → 단일/다중 종류 고르는 칸이라 헷갈림
 }
 
 # 배타적(택1) 체크박스 그룹의 group_prefix — 복수선택 안내 대신 '택1' 안내를 붙인다.
@@ -634,6 +635,83 @@ def add_prompt(ws, col_letter, n_rows, text, title="확인 규칙"):
     dv.add(rng)
 
 
+# ── @DT(12자리 일시) 규칙 헬퍼 ──────────────────────────────────────────
+# 순서 위반/상한 초과 시 빨강. raw 12자리(YYYYMMDDHHMM)는 시간순 단조라 순서비교는
+# 그대로, 'N분 이내' 상한은 dt_serial 로 실제 시간(1=하루)으로 바꿔 비교한다.
+def _dt_order(ws, colmap, n_rows, target, ref_cell, op, prompt):
+    """target(@DT) 이 ref_cell 보다 op 관계면 빨강. op '<'=target이 ref보다 이전.
+    ref_cell: 같은 시트 셀('$H3') 또는 환자목록 미러 헬퍼셀. 둘 다 raw 12자리."""
+    if target not in colmap:
+        return
+    c = get_column_letter(colmap[target])
+    t = f"${c}3"
+    cond = f"AND(ISNUMBER({t}),ISNUMBER({ref_cell}),{t}{op}{ref_cell})"
+    ws.conditional_formatting.add(
+        f"{c}3:{c}{3 + n_rows}", FormulaRule(formula=[cond], fill=WARN_FILL))
+    add_prompt(ws, c, n_rows, prompt, "일시 규칙")
+
+
+def _dt_window(ws, colmap, n_rows, target, ref_cell, lo_min, hi_min, prompt):
+    """target 이 [ref+lo_min분, ref+hi_min분] 범위 밖이면 빨강. lo/hi None=무제한."""
+    if target not in colmap:
+        return
+    c = get_column_letter(colmap[target])
+    tS, rS = dt_serial(f"${c}3"), dt_serial(ref_cell)
+    parts = []
+    if lo_min is not None:
+        parts.append(f"{tS}<{rS}+({lo_min})/1440")
+    if hi_min is not None:
+        parts.append(f"{tS}>{rS}+({hi_min})/1440")
+    inner = f"OR({','.join(parts)})" if len(parts) > 1 else parts[0]
+    cond = f"AND(ISNUMBER(${c}3),ISNUMBER({ref_cell}),{inner})"
+    ws.conditional_formatting.add(
+        f"{c}3:{c}{3 + n_rows}", FormulaRule(formula=[cond], fill=WARN_FILL))
+    add_prompt(ws, c, n_rows, prompt, "일시 규칙")
+
+
+def _er_helper_cell(ws, colmap, patient_colmap, n_rows):
+    """환자목록 ER_DATE(내원시각)를 미러링한 숨김 헬퍼열의 3행 셀('$X3') 반환.
+    CF의 교차시트 참조가 환경따라 안 먹혀 같은 시트 헬퍼열로 우회. 없으면 None.
+    ws.max_column+1 에 두어 이 시트가 이미 만든 다른 헬퍼열과 겹치지 않게 한다."""
+    if not (patient_colmap and "ER_DATE" in patient_colmap and colmap):
+        return None
+    av = get_column_letter(patient_colmap["ER_DATE"])
+    h = add_xref_helper(ws, "환자목록", av, n_rows, ws.max_column + 1)
+    return f"${h}3"
+
+
+# 환자등록(환자목록 시트) 필수항목: 사이트 checkInput 이 빈칸이면 저장을 막는 칸.
+# AGE 는 생년월일로 사이트가 자동계산 → 입력칸이 아니라 제외.
+REQUIRED_PATIENT_FIELDS = ["PAT_NM", "SEX", "DOB_YY", "ER_DATE", "HOSP_CD"]
+
+
+def apply_required_rules(ws, colmap, n_rows, field_names=REQUIRED_PATIENT_FIELDS, log=print):
+    """필수 입력칸이 비었는데 그 행에 입력이 시작돼 있으면 빨강 경고.
+    환자키는 1~N 미리 채워져 있으므로 '키 있음'으론 사용중 행을 못 가른다 →
+    필수칸 중 하나라도 채워졌는지(COUNTA>0)로 판별해 빈 행은 표시하지 않는다."""
+    last = 3 + n_rows
+    cols, missing = [], []
+    for name in field_names:
+        if name in colmap:
+            cols.append(get_column_letter(colmap[name]))
+        else:
+            missing.append(name)
+    cols = list(dict.fromkeys(cols))          # @DOB/@DT 형제 필드가 같은 열이면 중복 제거
+    if not cols:
+        log(f"[필수항목 규칙] 대상 열을 못 찾음: {field_names}")
+        return
+    # 4행부터(예시행 3행은 제외 — B/D/E 예시값 때문에 이니셜칸이 오탐되는 것 방지).
+    counta = "COUNTA(" + ",".join(f"${c}4" for c in cols) + ")"
+    for c in cols:
+        f = f'AND(${c}4="",{counta}>0)'        # 이 칸 비었고 + 행에 입력이 시작됨
+        ws.conditional_formatting.add(
+            f"{c}4:{c}{last}", FormulaRule(formula=[f], fill=WARN_FILL))
+        add_prompt(ws, c, n_rows,
+                   "⚠ 필수항목입니다. 비우면 사이트에서 저장이 막힙니다.", "필수항목")
+    if missing:
+        log(f"[필수항목 규칙] 입력칸 아님/제외로 건너뜀: {missing}")
+
+
 def apply_grey_rules(ws, colmap, n_rows, patient_colmap=None):
     """공통영역: 심폐소생술1/2 선택에 따라 종속 일시칸을 회색 처리.
     (심폐1=ER_CPR1, 심폐2=ER_CPR2 통합칸. 값은 '부모 - 자식' 문자열.)"""
@@ -728,8 +806,7 @@ def apply_grey_rules(ws, colmap, n_rows, patient_colmap=None):
         harr = add_xref_helper(ws, "환자목록", av, n_rows, max(colmap.values()) + 1)
         arr = f"${harr}3"
         after_targets = ["ER_CPR_STOP_DATE", "ER_ANY_ROSC_DATE", "ER_SUS_ROSC_DATE",
-                         "ER_DIE_DATE", "ER_OUT_DATE", "HOSP_AD_DATE",
-                         "HOSP_OUT_DATE", "HOSP_DIE_DATE"]
+                         "ER_DIE_DATE", "ER_OUT_DATE", "HOSP_AD_DATE"]
         seen_t = set()
         for fn in after_targets:
             if fn not in colmap:
@@ -738,11 +815,31 @@ def apply_grey_rules(ws, colmap, n_rows, patient_colmap=None):
             if c in seen_t:            # 합쳐진 @DT칸(날짜/시/분 동일열) 중복 방지
                 continue
             seen_t.add(c)
-            f = f"AND(ISNUMBER(${c}3),ISNUMBER({arr}),${c}3<={arr})"
+            # 사이트는 '이전(<)'만 차단, 같은 시각은 허용 → '<'(DOA 사망=내원시각 오탐 방지).
+            f = f"AND(ISNUMBER(${c}3),ISNUMBER({arr}),${c}3<{arr})"
             ws.conditional_formatting.add(
                 f"{c}3:{c}{last}", FormulaRule(formula=[f], fill=WARN_FILL))
             add_prompt(ws, c, n_rows, "⚠ 등록병원 응급실 내원시각(환자목록)보다 이후여야 "
-                       "합니다. 같거나 이전이면 빨간색으로 표시됩니다.", "일시 규칙")
+                       "합니다. 이전이면 빨간색으로 표시됩니다.", "일시 규칙")
+
+        # 병원 퇴원/사망일시는 '생존입원(HOSP_AD)' 이후여야(사이트는 내원 아닌 입원 기준).
+        if "HOSP_AD_DATE" in colmap:
+            hadc = f"${get_column_letter(colmap['HOSP_AD_DATE'])}3"
+            for fn, lbl in [("HOSP_OUT_DATE", "병원퇴원일시(생존퇴원)"),
+                            ("HOSP_DIE_DATE", "병원사망일시(사망퇴원)")]:
+                _dt_order(ws, colmap, n_rows, fn, hadc, "<",
+                          f"⚠ {lbl}는 생존입원 일시 이후여야 합니다. 이전이면 빨간색.")
+        # 심폐소생술 중단은 내원 후 360분 이내(타병원경유는 상한 없음).
+        if "ER_CPR_STOP_DATE" in colmap and "ER_LOCATION" in colmap:
+            sc = get_column_letter(colmap["ER_CPR_STOP_DATE"])
+            lc = get_column_letter(colmap["ER_LOCATION"])
+            sS, eS = dt_serial(f"${sc}3"), dt_serial(arr)
+            f = (f'AND(ISNUMBER(${sc}3),ISNUMBER({arr}),'
+                 f'{sS}>{eS}+360/1440,${lc}3<>"타병원경유")')
+            ws.conditional_formatting.add(
+                f"{sc}3:{sc}{last}", FormulaRule(formula=[f], fill=WARN_FILL))
+            add_prompt(ws, sc, n_rows, "⚠ 심폐소생술 중단은 내원시각 이후 360분 이내여야 "
+                       "합니다(타병원경유 제외). 초과 시 빨간색.", "일시 규칙")
 
 
 def apply_grey_community(ws, colmap, n_rows, patient_colmap=None):
@@ -824,7 +921,7 @@ def apply_grey_prevent(ws, colmap, n_rows):
                 FormulaRule(formula=[f'${ctx}3<>"예"'], fill=GREY_FILL))
 
 
-def apply_grey_relief(ws, colmap, n_rows):
+def apply_grey_relief(ws, colmap, n_rows, patient_colmap=None):
     """구급단계: 부모 라디오 선택에 따라 종속 일시/상세/용량칸 회색 안내.
     - 일시칸(제세동/기계식압박/자발순환): 부모가 시행/적용/회복일 때만 흰색
     - 심정지리듬·기타, 기도확보 방법(그룹), 약물 상세(그룹): 부모 활성값일 때만 흰색
@@ -877,8 +974,40 @@ def apply_grey_relief(ws, colmap, n_rows):
                 dv.error = '구급대 제세동이 "시행"일 때만 입력할 수 있습니다.'
                 break
 
+    # ── 재난번호 12자리 + 일시 순서/상한(빨강) ──────────────────────────
+    if "DISASTER_NUM" in colmap:
+        dcol = colmap["DISASTER_NUM"]
+        dc = get_column_letter(dcol)
+        for r in range(4, 4 + n_rows):          # 텍스트 서식: 앞자리 0 보존, LEN 정확
+            ws.cell(row=r, column=dcol).number_format = "@"
+        f = f'AND(${dc}4<>"",${dc}4<>"미상",LEN(${dc}4)<>12)'
+        ws.conditional_formatting.add(
+            f"{dc}4:{dc}{last}", FormulaRule(formula=[f], fill=WARN_FILL))
+        add_prompt(ws, dc, n_rows, "⚠ 출동재난번호는 12자리여야 합니다('미상' 제외).", "형식 규칙")
 
-def apply_grey_in_hosp(ws, colmap, n_rows, common_colmap=None):
+    def cell(fn):
+        return f"${get_column_letter(colmap[fn])}3" if fn in colmap else None
+
+    scene = cell("SCENE_DATE")
+    if cell("CALL_DATE"):
+        _dt_window(ws, colmap, n_rows, "SCENE_DATE", cell("CALL_DATE"), 0, 600,
+                   "⚠ 현장도착은 출동요청 이후 600분 이내여야 합니다.")
+    if scene:
+        _dt_window(ws, colmap, n_rows, "DEPARTURE_DATE", scene, 0, 600,
+                   "⚠ 현장출발은 현장도착 이후 600분 이내여야 합니다.")
+        _dt_window(ws, colmap, n_rows, "PRE_DEFIB_DATE", scene, 0, 600,
+                   "⚠ 제세동은 현장도착 이후 600분 이내여야 합니다.")
+    er = _er_helper_cell(ws, colmap, patient_colmap, n_rows)
+    if er:
+        _dt_window(ws, colmap, n_rows, "DEPARTURE_DATE", er, -600, 0,
+                   "⚠ 현장출발은 내원시각 이전 600분 이내여야 합니다.")
+        _dt_order(ws, colmap, n_rows, "PRE_DEFIB_DATE", er, ">",
+                  "⚠ 제세동은 내원시각 이전이어야 합니다. 이후이면 빨간색.")
+        _dt_order(ws, colmap, n_rows, "PRE_ROSC_DATE", er, ">",
+                  "⚠ 병원전 자발순환회복은 내원시각 이전이어야 합니다. 이후이면 빨간색.")
+
+
+def apply_grey_in_hosp(ws, colmap, n_rows, common_colmap=None, patient_colmap=None):
     """병원단계 조건부 회색 안내.
     #1 타병원 자발순환회복(PRE_ROSC): 공통영역 내원경로=타병원경유 일 때만 흰색(교차시트).
     #2 회복시각: PRE_ROSC=회복 / #3 심정지리듬: HOSP_ECG=심정지리듬
@@ -938,6 +1067,14 @@ def apply_grey_in_hosp(ws, colmap, n_rows, common_colmap=None):
     ei = L("ENDO_INTU")
     if ei:
         rule("F_AD_AIRWAYD", f'${ei}3<>"등록병원 시행"')
+    # ECMO 시행(EX_CIRC_EXE)이 미시행/미상(또는 미입력)이면 시술 관련 칸 전부 비활성 → 회색.
+    # 시작·완료시점 / Pump-on·off 시점 / 기계 작동 성공.
+    ce = L("EX_CIRC_EXE")
+    if ce:
+        for t in ("EX_CIR_S_DATE", "EX_CIR_E_DATE", "ECMO_DATE",
+                  "ECMO5_POFF_DATE", "EX_CIR_SUCC"):
+            rule(t, f'OR(${ce}3="",${ce}3="미시행",${ce}3="미상")')
+
     # #6/#7/#9 + Steroid 종류(기타): 부모=기타 일 때만 흰색
     for parent, etc in [("F_AD_AIRWAYD", "F_AD_AIRWAY_ETC"),
                         ("F_IV_KIND", "F_IV_KIND_ETC"),
@@ -959,9 +1096,18 @@ def apply_grey_in_hosp(ws, colmap, n_rows, common_colmap=None):
         for t in ("STEROID", "STEROID_UNIT"):
             rule(t, f'OR(${sk}3="",${sk}3="미시행")')
 
+    # 타병원 자발순환회복(PRE_ROSC)은 내원시각 이전이어야(빨강).
+    er = _er_helper_cell(ws, colmap, patient_colmap, n_rows)
+    if er:
+        _dt_order(ws, colmap, n_rows, "PRE_ROSC_DATE", er, ">",
+                  "⚠ 타병원 자발순환회복 일시는 내원시각 이전이어야 합니다. 이후이면 빨간색.")
 
-def apply_grey_alive_after(ws, colmap, n_rows, common_colmap=None):
-    """소생후단계: 시트 전체 게이팅(공통 심폐1/2) + 시술·검사·목표체온·승압제 종속 회색."""
+
+def apply_grey_alive_after(ws, colmap, n_rows, common_colmap=None, patient_colmap=None):
+    """소생후단계: 시술·검사·목표체온·승압제 등 '개별' 종속 회색만.
+    시트 전체 게이팅 없음 — 사이트가 소생후를 공통 CPR 결과로 통째로 막지 않음
+    (new_case6.html 확인: 전체-disable JS 없고 ROSC 직후 활력징후·승압제·목표체온
+    상위칸이 활성, 페이지에 심폐1/2 값 자체가 없어 클라이언트 게이팅 불가)."""
     last = 3 + n_rows
 
     def L(name):
@@ -973,20 +1119,8 @@ def apply_grey_alive_after(ws, colmap, n_rows, common_colmap=None):
             ws.conditional_formatting.add(
                 f"{c}3:{c}{last}", FormulaRule(formula=[formula], fill=GREY_FILL))
 
-    # 시트 전체 게이팅: 공통 심폐1='시행 20분이내 중단 - 자발순환회복' 또는
-    # 심폐2='시행 - Sustained ROSC' 인 경우에만 활성. 아니면 전 컬럼 회색.
-    # 공통영역 값은 교차시트라 CF가 못 읽음 → 숨김 헬퍼열(데이터 마지막 열 뒤)에 미러링.
-    if common_colmap and "ER_CPR1" in common_colmap and "ER_CPR2" in common_colmap and colmap:
-        cs = SHEET_NAMES["common"]
-        lastcol = get_column_letter(max(colmap.values()))   # 게이팅 대상 범위(헬퍼 제외)
-        hc1 = add_xref_helper(ws, cs, get_column_letter(common_colmap["ER_CPR1"]),
-                              n_rows, max(colmap.values()) + 1)
-        hc2 = add_xref_helper(ws, cs, get_column_letter(common_colmap["ER_CPR2"]),
-                              n_rows, max(colmap.values()) + 2)
-        gate = (f'NOT(OR(${hc1}3="시행 20분이내 중단 - 자발순환회복",'
-                f'${hc2}3="시행 - Sustained ROSC"))')
-        ws.conditional_formatting.add(
-            f"B3:{lastcol}{last}", FormulaRule(formula=[gate], fill=GREY_FILL))
+    # (시트 전체 게이팅 제거 2026-07-06: 사이트가 소생후를 공통 CPR 결과로 통째로
+    #  막지 않음 — 개별 종속 회색만 유지. common_colmap 은 이제 미사용.)
 
     # 시술류(등록/타병원 시행이면 흰색): 미시행·미상·미선택이면 회색
     for parent, targets in [("REPER", ["REPER_TIME"]), ("CLOT", ["CLOT_DATE"]),
@@ -1015,12 +1149,33 @@ def apply_grey_alive_after(ws, colmap, n_rows, common_colmap=None):
             for t in targets:
                 rule(t, f'${p}3<>"시행함"')
 
-    # 목표체온조절(LAW_TEMP='시행'): 하위 저온법/일시/목표온도/재가온 모두 회색(기본 비활성)
+    # 목표체온조절(LAW_TEMP): 사이트는 이 칸들을 막지 않음(항상 활성). 저장검증(checkInput)은
+    # '미시행이면 세부에 미시행 외 표기 불가'라는 값 모순만 검사 → 회색 대신 빨강으로.
     lt = L("LAW_TEMP")
     if lt:
-        for t in ["EX_LAW_TEMP1", "EX_LAW_TEMP2", "EX_LAW_TEMP3", "IN_LAW_TEMP",
-                  "LAW_TEMP_DATE", "RE_TEMP_DATE", "LAW_TEMP_TARGET", "RE_TEMP_SPEED"]:
+        last_r = 3 + n_rows
+        # 시작/재가온 일시: 목표체온조절≠시행이면 비워두는 칸 → 회색 비활성화 안내.
+        for t in ["LAW_TEMP_DATE", "RE_TEMP_DATE"]:
             rule(t, f'${lt}3<>"시행"')
+        # 시행방법 4종: 미시행이면 '미시행' 또는 빈칸만 허용 → 그 외 값이면 빨강(모순).
+        for t in ["EX_LAW_TEMP1", "EX_LAW_TEMP2", "EX_LAW_TEMP3", "IN_LAW_TEMP"]:
+            c = L(t)
+            if c:
+                ws.conditional_formatting.add(
+                    f"{c}3:{c}{last_r}",
+                    FormulaRule(formula=[f'AND(${lt}3="미시행",${c}3<>"",${c}3<>"미시행")'],
+                                fill=WARN_FILL))
+                add_prompt(ws, c, n_rows,
+                           "⚠ 목표체온조절=미시행이면 이 칸은 '미시행' 또는 빈칸이어야 합니다.", "모순 규칙")
+        # 목표온도·재가온속도: '미시행' 옵션이 없음 → 미시행이면 빈칸이어야(값 있으면 빨강).
+        for t in ["LAW_TEMP_TARGET", "RE_TEMP_SPEED"]:
+            c = L(t)
+            if c:
+                ws.conditional_formatting.add(
+                    f"{c}3:{c}{last_r}",
+                    FormulaRule(formula=[f'AND(${lt}3="미시행",${c}3<>"")'], fill=WARN_FILL))
+                add_prompt(ws, c, n_rows,
+                           "⚠ 목표체온조절=미시행이면 이 칸은 비어 있어야 합니다.", "모순 규칙")
 
     # 승압제(HYPER): 'ROSC 24시간 이내'일 때만 종류 그룹 활성(미상은 드롭다운에 포함됨)
     hy = L("HYPER")
@@ -1038,8 +1193,16 @@ def apply_grey_alive_after(ws, colmap, n_rows, common_colmap=None):
     if g and "ROSC_INOTR_TYPE_ETC" in colmap:
         rule("ROSC_INOTR_TYPE_ETC", f'NOT(ISNUMBER(SEARCH("기타",${g}3)))')
 
+    # 재관류/시술(혈전용해·조영·성형·우회) 시행일시는 내원시각 이후여야(빨강).
+    er = _er_helper_cell(ws, colmap, patient_colmap, n_rows)
+    if er:
+        for fn, lbl in [("CLOT_DATE", "혈전용해제"), ("ANGIO_DATE", "심혈관조영술"),
+                        ("CA_DATE", "관상동맥성형술"), ("CAB_DATE", "관상동맥우회술")]:
+            _dt_order(ws, colmap, n_rows, fn, er, "<",
+                      f"⚠ {lbl} 시행일시는 내원시각 이후여야 합니다. 이전이면 빨간색.")
 
-def apply_grey_heart(ws, colmap, n_rows):
+
+def apply_grey_heart(ws, colmap, n_rows, patient_colmap=None):
     """심장검사(항상 활성): 심장효소 ND→단위·일시 회색, 심초음파/CAG 미시행→하위 회색."""
     last = 3 + n_rows
 
@@ -1073,6 +1236,21 @@ def apply_grey_heart(ws, colmap, n_rows):
         re = L("CAG_RE" + i)
         if re and ("CAG_RE_ETC" + i) in colmap:
             rule("CAG_RE_ETC" + i, f'${re}3<>"기타"')
+
+    # 심장효소 시각(빨강): 내원시 검사는 내원 이후, peak 은 내원시 검사 이후.
+    er = _er_helper_cell(ws, colmap, patient_colmap, n_rows)
+    if er:
+        for fn, lbl in [("CKMB_DATE", "내원시 CKMB"), ("TROP_I_DATE", "내원시 Troponin I"),
+                        ("TROP_T_DATE", "내원시 Troponin T")]:
+            _dt_order(ws, colmap, n_rows, fn, er, "<",
+                      f"⚠ {lbl} 시행일시는 내원시각 이후여야 합니다. 이전이면 빨간색.")
+    for peak, base, lbl in [("CKMB_PEAK_DATE", "CKMB_DATE", "CKMB peak"),
+                            ("TROP_I_PEAK_DATE", "TROP_I_DATE", "Troponin I peak"),
+                            ("TROP_T_PEAK_DATE", "TROP_T_DATE", "Troponin T peak")]:
+        if base in colmap:
+            bc = f"${get_column_letter(colmap[base])}3"
+            _dt_order(ws, colmap, n_rows, peak, bc, "<",
+                      f"⚠ {lbl} 시행일시는 내원시 검사 이후여야 합니다. 이전이면 빨간색.")
 
 
 def apply_grey_y_child(ws, colmap, n_rows):
@@ -1137,7 +1315,9 @@ def _write_header(ws, col, label, name_text):
     c2.font = NAME_FONT
     c2.alignment = CENTER
     c2.border = BORDER
-    ws.column_dimensions[get_column_letter(col)].width = max(12, min(28, len(str(label)) + 4))
+    # 한글/CJK 는 2칸 폭이라 시각적 길이로 계산(헤더는 wrap 되므로 상한을 둔다).
+    vis = sum(2 if ord(ch) >= 0x1100 else 1 for ch in str(label))
+    ws.column_dimensions[get_column_letter(col)].width = max(12, min(32, round(vis * 0.7) + 3))
 
 
 def write_field_header(ws, col, f, label=None):
@@ -1173,13 +1353,13 @@ def build_area_sheet(wb, area, sheet_title, n_rows=30, list_ctx=None,
     elif area["key"] == "community":
         apply_grey_community(ws, colmap, n_rows, patient_colmap)
     elif area["key"] == "relief":
-        apply_grey_relief(ws, colmap, n_rows)
+        apply_grey_relief(ws, colmap, n_rows, patient_colmap)
     elif area["key"] == "in_hosp":
-        apply_grey_in_hosp(ws, colmap, n_rows, common_colmap)  # 일부 규칙은 공통영역 참조
+        apply_grey_in_hosp(ws, colmap, n_rows, common_colmap, patient_colmap)
     elif area["key"] == "alive_after":
-        apply_grey_alive_after(ws, colmap, n_rows, common_colmap)  # 시트 게이팅=공통 참조
+        apply_grey_alive_after(ws, colmap, n_rows, common_colmap, patient_colmap)
     elif area["key"] == "heart":
-        apply_grey_heart(ws, colmap, n_rows)
+        apply_grey_heart(ws, colmap, n_rows, patient_colmap)
     elif area["key"] == "y_child":
         apply_grey_y_child(ws, colmap, n_rows)
     return count, colmap
@@ -1263,9 +1443,10 @@ def build_usage(wb):
         "   (시각을 모르면 날짜만 적어도 됩니다.)",
         " - 생년월일 칸: '1970-05-15' 또는 숫자 8자리 '19700515' (한 칸).",
         "",
-        "■ 드롭다운 / 회색 칸",
+        "■ 드롭다운 / 색 표시 (회색·빨강)",
         " - 목록이 있는 칸은 목록에서 고르세요. 일부 칸은 쉼표(,)로 여러 개 선택할 수 있습니다(셀 클릭 시 안내).",
-        " - 앞 칸 선택에 따라 필요 없는 칸은 회색으로 표시됩니다. (안내일 뿐이며 입력이 막히진 않습니다.)",
+        " - 회색 칸: 앞 칸 선택에 따라 필요 없는 칸입니다. (안내일 뿐이며 입력이 막히진 않습니다.)",
+        " - 빨강 칸: 입력한 값이 규칙에 맞지 않을 때 표시됩니다(필수항목 빈칸, 일시 순서·범위 오류 등). 경고일 뿐 입력·저장은 됩니다.",
         "",
         "■ 검사결과 파일 (SSEP·EEG·뇌CT·뇌MRI 등)",
         " - 결과 '파일 첨부'는 프로그램이 대신 올리지 못합니다. 필요하면 등록 후 사이트에서 직접 업로드하세요.",
@@ -1301,6 +1482,7 @@ def build(out_path=None, schema_path=None, log=print):
     ws = wb.create_sheet("환자목록")
     add_key_columns(ws, "환자키")
     pa_count, pa_colmap = write_columns(ws, pa["fields"], 30, list_ctx)
+    apply_required_rules(ws, pa_colmap, 30, log=log)   # 필수항목 빈칸 → 빨강
 
     # 나머지 영역 시트 (입력칸이 없는 영역은 시트 생성 안 함)
     # common 을 먼저 만들어 colmap 을 보관 → in_hosp 교차시트 회색규칙에서 참조.
