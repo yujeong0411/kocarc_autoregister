@@ -104,7 +104,7 @@ def load_config():
     conf = {
         "base_url": c.get("base_url", "https://ecrf.kr").rstrip("/"),
         "login_url": c.get("login_url", "https://ecrf.kr/kocarc/"),
-        "member_id": c.get("member_id", "kocarc_14"),
+        "member_id": c.get("member_id", ""),
         "password": c.get("password", ""),
         "excel": c.get("excel", "KOCARC_입력양식.xlsx"),
         "headless": c.getboolean("headless", False),

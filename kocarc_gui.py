@@ -14,6 +14,7 @@ import os
 import sys
 import queue
 import threading
+import configparser
 from urllib.parse import urlsplit
 
 import tkinter as tk
@@ -25,7 +26,6 @@ import build_template
 APP_TITLE = "KOCARC 환자 자동등록"
 APP_SUBTITLE = "eCRF 환자 정보 일괄 자동등록"
 DEFAULT_LOGIN = "https://ecrf.kr/kocarc/"
-DEFAULT_ID = "kocarc_14"
 
 # ---------- 색상 팔레트 (깔끔한 의료용 블루) ----------
 BG = "#eef1f6"        # 창 배경
@@ -168,11 +168,15 @@ class App:
         self.login_var = tk.StringVar(value=DEFAULT_LOGIN)
         ttk.Entry(g2, textvariable=self.login_var).grid(row=0, column=1, sticky="ew", pady=4)
         self._field_label(g2, "아이디", 1)
-        self.id_var = tk.StringVar(value=DEFAULT_ID)
+        saved_id = self._load_saved_id()
+        self.id_var = tk.StringVar(value=saved_id)
         ttk.Entry(g2, textvariable=self.id_var).grid(row=1, column=1, sticky="ew", pady=4)
-        self._field_label(g2, "비밀번호", 2)
+        self.save_id_var = tk.BooleanVar(value=bool(saved_id))
+        self._check(g2, "아이디 저장", self.save_id_var).grid(
+            row=2, column=1, sticky="w", pady=(0, 4))
+        self._field_label(g2, "비밀번호", 3)
         self.pw_var = tk.StringVar()
-        ttk.Entry(g2, textvariable=self.pw_var, show="●").grid(row=2, column=1, sticky="ew", pady=4)
+        ttk.Entry(g2, textvariable=self.pw_var, show="●").grid(row=3, column=1, sticky="ew", pady=4)
         g2.columnconfigure(1, weight=1)
 
         # --- 3) 옵션 ---
@@ -345,6 +349,33 @@ class App:
         p = os.path.join(self._app_dir(), "KOCARC_입력양식.xlsx")
         return p if os.path.exists(p) else ""
 
+    # ---------- 아이디 저장(settings.ini, 비밀번호는 저장 안 함) ----------
+    def _settings_path(self):
+        return os.path.join(self._app_dir(), "settings.ini")
+
+    def _load_saved_id(self):
+        try:
+            cp = configparser.ConfigParser()
+            cp.read(self._settings_path(), encoding="utf-8")
+            return cp.get("gui", "member_id", fallback="").strip()
+        except Exception:
+            return ""
+
+    def _save_id(self, member_id):
+        cp = configparser.ConfigParser()
+        cp["gui"] = {"member_id": member_id}
+        try:
+            with open(self._settings_path(), "w", encoding="utf-8") as f:
+                cp.write(f)
+        except Exception:
+            pass
+
+    def _clear_saved_id(self):
+        try:
+            os.remove(self._settings_path())
+        except OSError:
+            pass
+
     # ---------- UI 동작 ----------
     def pick_excel(self):
         p = filedialog.askopenfilename(
@@ -382,7 +413,7 @@ class App:
         return {
             "base_url": base.rstrip("/"),
             "login_url": login,
-            "member_id": self.id_var.get().strip() or DEFAULT_ID,
+            "member_id": self.id_var.get().strip(),
             "password": self.pw_var.get(),
             "excel": self.excel_var.get().strip(),
             "headless": bool(self.headless_var.get()),
@@ -400,6 +431,9 @@ class App:
         if not conf["excel"] or not os.path.exists(conf["excel"]):
             messagebox.showwarning(APP_TITLE, "입력 엑셀 파일을 먼저 선택하세요.")
             return
+        if not conf["member_id"]:
+            messagebox.showwarning(APP_TITLE, "아이디를 입력하세요.")
+            return
         if not conf["password"]:
             messagebox.showwarning(APP_TITLE, "비밀번호를 입력하세요.")
             return
@@ -411,6 +445,12 @@ class App:
         msg += "(처음에는 '특정 환자키만'에 1 만 넣어 1명으로 시험을 권장)"
         if not messagebox.askyesno(APP_TITLE, msg):
             return
+
+        # 아이디 저장(체크 시) / 해제 시 저장분 삭제 — 비밀번호는 저장 안 함
+        if self.save_id_var.get():
+            self._save_id(conf["member_id"])
+        else:
+            self._clear_saved_id()
 
         # 로그 라우팅
         bot.set_log(lambda line: self.q.put(line))
