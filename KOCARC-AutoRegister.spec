@@ -29,7 +29,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='KOCARC 자동등록',
+    name='KOCARC-AutoRegister',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
