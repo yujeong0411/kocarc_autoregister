@@ -1178,15 +1178,19 @@ def apply_grey_alive_after(ws, colmap, n_rows, common_colmap=None, patient_colma
                                 fill=WARN_FILL))
                 add_prompt(ws, c, n_rows,
                            "⚠ 목표체온조절=미시행이면 이 칸은 '미시행' 또는 빈칸이어야 합니다.", "모순 규칙")
-        # 목표온도·재가온속도: '미시행' 옵션이 없음 → 미시행이면 빈칸이어야(값 있으면 빨강).
+        # 목표온도·재가온속도: 목표체온조절≠시행이면 회색(비활성) + 미시행인데 값 있으면 빨강(모순).
+        # 두 규칙은 상호배타(빨강조건을 회색에서 제외)라 우선순위와 무관하게 겹치지 않는다.
         for t in ["LAW_TEMP_TARGET", "RE_TEMP_SPEED"]:
             c = L(t)
             if c:
-                ws.conditional_formatting.add(
-                    f"{c}3:{c}{last_r}",
-                    FormulaRule(formula=[f'AND(${lt}3="미시행",${c}3<>"")'], fill=WARN_FILL))
+                red = f'AND(${lt}3="미시행",${c}3<>"")'
+                ws.conditional_formatting.add(f"{c}3:{c}{last_r}",
+                    FormulaRule(formula=[red], fill=WARN_FILL))
+                ws.conditional_formatting.add(f"{c}3:{c}{last_r}",
+                    FormulaRule(formula=[f'AND(${lt}3<>"시행",NOT({red}))'], fill=GREY_FILL))
                 add_prompt(ws, c, n_rows,
-                           "⚠ 목표체온조절=미시행이면 이 칸은 비어 있어야 합니다.", "모순 규칙")
+                           "목표체온조절이 시행이 아니면 비워두세요(회색). 미시행인데 값이 있으면 모순(빨강).",
+                           "회색+모순 규칙")
 
     # 승압제(HYPER): 'ROSC 24시간 이내'일 때만 종류 그룹 활성(미상은 드롭다운에 포함됨)
     hy = L("HYPER")

@@ -156,10 +156,17 @@ LAW_METHOD_CASES = [  # (목표체온조절, 방법값, 빨강?)
     ("미시행", "미시행", False), ("미시행", "", False),
     ("시행", "등록병원 시행", False), ("미상", "등록병원 시행", False),
 ]
-# 목표온도·재가온속도: '미시행' 옵션 없음 → TTM=미시행인데 값 있으면 빨강(빈칸이어야)
-def law_ts_red(tt, v): return tt == "미시행" and v != ""
-LAW_TS_CASES = [("미시행", "32-34도", True), ("미시행", "", False),
-                ("시행", "32-34도", False), ("미상", "36도", False)]
+# 목표온도·재가온속도: 시행 아니면 회색(비활성) + 미시행인데 값 있으면 빨강(모순). 상호배타.
+def law_ts_red(tt, v):  return tt == "미시행" and v != ""
+def law_ts_grey(tt, v): return tt != "시행" and not law_ts_red(tt, v)
+LAW_TS_CASES = [  # (목표체온조절, 값, 빨강?, 회색?)
+    ("미시행", "32-34도", True, False),   # 미시행+값 → 빨강만
+    ("미시행", "", False, True),          # 미시행+빈칸 → 회색
+    ("시행", "32-34도", False, False),    # 시행 → 흰색
+    ("시행", "", False, False),           # 시행+빈칸 → 흰색
+    ("미상", "36도", False, True),        # 미상+값 → 회색(모순 아님)
+    ("미상", "", False, True),            # 미상+빈칸 → 회색
+    ("", "", False, True)]                # 미입력 → 회색
 HYPER_CASES = [("ROSC 24시간 이내", True), ("ROSC 24시간 이후", False), ("미사용", False), ("", False)]
 
 # 소아소생술: 12개월 후 생존=생존/사망일 때만 12개월 후 PCPC 활성, 과거력=기타만 기타칸 활성
@@ -218,8 +225,10 @@ def main():
         assert (not relief_grey(v, "시행")) == w_ok, ("목표체온일시", v)
     for tt, m, r in LAW_METHOD_CASES:
         assert law_method_red(tt, m) == r, ("저온법방법", tt, m)
-    for tt, v, r in LAW_TS_CASES:
-        assert law_ts_red(tt, v) == r, ("목표온도속도", tt, v)
+    for tt, v, r, g in LAW_TS_CASES:
+        assert law_ts_red(tt, v) == r, ("목표온도속도빨강", tt, v)
+        assert law_ts_grey(tt, v) == g, ("목표온도속도회색", tt, v)
+        assert not (r and g), ("빨강·회색 동시금지", tt, v)  # 상호배타 검증
     for v, w_ok in HYPER_CASES:
         assert (not hyper_grey(v)) == w_ok, ("승압제", v)
     for v, w_ok in Y12_PCPC_CASES:
