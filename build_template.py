@@ -24,6 +24,11 @@ from openpyxl.formatting.rule import FormulaRule
 from openpyxl.utils import get_column_letter
 from openpyxl.comments import Comment
 
+try:
+    from example_row import EXAMPLES  # 3행 예시값(KOCARC_.xlsx 3행 기반)
+except Exception:
+    EXAMPLES = {}
+
 BASE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(BASE, "KOCARC_입력양식.xlsx")
 
@@ -564,11 +569,17 @@ def write_columns(ws, fields, n_rows, list_ctx=None):
             ws.add_data_validation(dv)
             colL = get_column_letter(col)
             dv.add(f"{colL}3:{colL}{3 + n_rows}")
-        # 3행 = 회색 예시행(입력 무시). 드롭다운이면 첫 항목을 예시로 자동 사용.
-        if not example and dv is not None and dv.type == "list" \
+        # 3행 = 회색 예시행(입력 무시).
+        # 이 시트가 예시맵(KOCARC_.xlsx 3행)에 있으면 그 값을 그대로 사용(빈칸 포함).
+        ex_map = EXAMPLES.get(ws.title)
+        marker = ws.cell(row=2, column=col).value  # _write_header 가 쓴 2행 마커
+        if ex_map is not None and marker in ex_map:
+            example = ex_map[marker]
+        # 예시맵에 없는 시트만 드롭다운 첫 항목을 예시로 자동 사용.
+        elif not example and dv is not None and dv.type == "list" \
                 and dv.formula1 and dv.formula1.startswith('"'):
             example = dv.formula1.strip('"').split(",")[0]
-        if example:
+        if example not in (None, ""):
             exc = ws.cell(row=3, column=col, value=example)
             exc.font = Font(italic=True, color="A6A6A6", size=9)
         col += 1
