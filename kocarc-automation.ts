@@ -1,7 +1,7 @@
 import type { Tool } from "./types";
 
 // 이미지 위치: public/tools/kocarc-automation/{logo.png, card.png, guide/*.png}
-// TODO 확인 필요: downloadUrl 릴리스 자산명, changelog 날짜, featured 여부
+// TODO 확인 필요: featured 여부
 export const kocarcAutomation: Tool = {
   slug: "kocarc-automation",
   name: "KOCARC 자동등록",
@@ -15,8 +15,7 @@ export const kocarcAutomation: Tool = {
   featured: false, // TODO: 대표 도구로 노출할지 결정
   hasGuide: false,
   downloadUrl:
-    // TODO: 릴리스에 올린 실제 exe 자산명으로 교체 (파일명에 공백/한글이 있으면 URL 인코딩 필요)
-    "https://github.com/yujeong0411/kocarc_automation/releases/latest/download/KOCARC_%EC%9E%90%EB%8F%99%EB%93%B1%EB%A1%9D.exe",
+    "https://github.com/yujeong0411/kocarc_automation/releases/latest/download/KOCARC-AutoRegister.exe",
   quickStart: [
     "실행파일을 다운로드해서 더블클릭하세요.",
     "PC 보호창이 뜨면 추가정보를 누르고 실행을 누르세요.",
