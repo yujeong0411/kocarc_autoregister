@@ -1268,10 +1268,10 @@ def apply_grey_heart(ws, colmap, n_rows, patient_colmap=None):
                       f"⚠ {lbl} 시행일시는 내원시 검사 이후여야 합니다. 이전이면 빨간색.")
 
 
-def apply_grey_y_child(ws, colmap, n_rows):
-    """소아소생술(항상 활성, 게이팅 없음): 과거력=기타만 기타칸 활성,
-    병원 퇴원시 PCPC=사망/미상이면 추적관찰(6·12개월) 회색,
-    12개월 후 생존=생존/사망일 때만 12개월 후 PCPC 활성. 사망일시는 항상 활성."""
+def apply_grey_y_child(ws, colmap, n_rows, patient_colmap=None):
+    """소아소생술: 만나이(오늘 기준) 19세 미만인 소아만 시트 활성(흰색), 그 외 회색.
+    그 안에서 과거력=기타만 기타칸 활성, 병원 퇴원시 PCPC=사망/미상이면 추적관찰(6·12개월)
+    회색, 12개월 후 생존=생존/사망일 때만 12개월 후 PCPC 활성."""
     last = 3 + n_rows
 
     def L(name):
@@ -1282,6 +1282,28 @@ def apply_grey_y_child(ws, colmap, n_rows):
         if c:
             ws.conditional_formatting.add(
                 f"{c}3:{c}{last}", FormulaRule(formula=[formula], fill=GREY_FILL))
+
+    # 연령 게이트: 소아 = '내원일(ER_DATE) 기준' 만 19세 미만. (사이트 computeAge 와 동일 —
+    # 오늘이 아니라 내원일 기준. 예: 몇 년 뒤 등록해도 내원 당시 나이로 판정.)
+    # 생년월일(8자리 YYYYMMDD)·내원시각(12자리 YYYYMMDDHHMM)을 숨김 헬퍼열에 미러링해 만나이 계산.
+    # 날짜serial 로 들어와도 처리, 미입력·오류는 99세로 → 회색(안전한 기본=비활성). 예시행(3행) 제외.
+    if (patient_colmap and colmap
+            and "DOB_YY" in patient_colmap and "ER_DATE" in patient_colmap):
+        last_real = max(colmap.values())
+        hd = add_xref_helper(ws, "환자목록", get_column_letter(patient_colmap["DOB_YY"]),
+                             n_rows, ws.max_column + 1)   # 생년월일
+        he = add_xref_helper(ws, "환자목록", get_column_letter(patient_colmap["ER_DATE"]),
+                             n_rows, ws.max_column + 1)   # 내원시각
+        b, e = f"${hd}4", f"${he}4"
+        bdate = (f'IF({b}>=10000000,DATE(INT({b}/10000),MOD(INT({b}/100),100),'
+                 f'MOD({b},100)),{b})')
+        edate = (f'IF({e}>=100000000,DATE(INT({e}/100000000),MOD(INT({e}/1000000),100),'
+                 f'MOD(INT({e}/10000),100)),{e})')
+        age = f'IFERROR(DATEDIF({bdate},{edate},"Y"),99)'
+        not_ped = (f'OR(NOT(ISNUMBER({b})),NOT(ISNUMBER({e})),{b}<=0,{e}<=0,{age}>=19)')
+        ws.conditional_formatting.add(
+            f"B4:{get_column_letter(last_real)}{last}",
+            FormulaRule(formula=[not_ped], fill=GREY_FILL))
 
     mh = L("MEDI_HIST")
     if mh:
@@ -1376,7 +1398,7 @@ def build_area_sheet(wb, area, sheet_title, n_rows=30, list_ctx=None,
     elif area["key"] == "heart":
         apply_grey_heart(ws, colmap, n_rows, patient_colmap)
     elif area["key"] == "y_child":
-        apply_grey_y_child(ws, colmap, n_rows)
+        apply_grey_y_child(ws, colmap, n_rows, patient_colmap)
     return count, colmap
 
 
@@ -1462,6 +1484,7 @@ def build_usage(wb):
         " - 목록이 있는 칸은 목록에서 고르세요. 일부 칸은 쉼표(,)로 여러 개 선택할 수 있습니다(셀 클릭 시 안내).",
         " - 회색 칸: 앞 칸 선택에 따라 필요 없는 칸입니다. (안내일 뿐이며 입력이 막히진 않습니다.)",
         " - 빨강 칸: 입력한 값이 규칙에 맞지 않을 때 표시됩니다(필수항목 빈칸, 일시 순서·범위 오류 등). 경고일 뿐 입력·저장은 됩니다.",
+        " - 소아소생술 시트: 환자목록 생년월일·내원시각 기준 '내원일에 만 19세 미만(소아)'일 때만 흰색으로 활성, 그 외에는 회색으로 표시됩니다(사이트 기준과 동일).",
         "",
         "■ 검사결과 파일 (SSEP·EEG·뇌CT·뇌MRI 등)",
         " - 결과 '파일 첨부'는 프로그램이 대신 올리지 못합니다. 필요하면 등록 후 사이트에서 직접 업로드하세요.",

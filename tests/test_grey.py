@@ -173,6 +173,30 @@ HYPER_CASES = [("ROSC 24시간 이내", True), ("ROSC 24시간 이후", False), 
 def y12_pcpc_grey(live): return live not in ("생존", "사망")
 Y12_PCPC_CASES = [("생존", True), ("사망", True), ("미상(연락두절)", False), ("", False)]
 YCHILD_ETC_CASES = [("기타", True), ("없음", False), ("신경계질환", False), ("", False)]
+
+# 소아소생술 연령 게이트: '내원일(ER_DATE) 기준' 만나이<19(소아)면 흰색, 그 외 회색.
+# 사이트 computeAge 와 동일 — 오늘이 아니라 내원일 기준. (엑셀 DATEDIF("Y") 판정)
+import datetime as _dt
+def child_grey(dob, er):
+    if not isinstance(dob, int) or dob <= 0:
+        return True                                    # 미입력/무효 → 회색
+    try:
+        b = _dt.date(dob // 10000, (dob // 100) % 100, dob % 100)
+    except ValueError:
+        return True                                    # 잘못된 날짜 → 회색
+    if b > er:
+        return True                                    # 내원일보다 뒤 출생 → 회색
+    age = er.year - b.year - ((er.month, er.day) < (b.month, b.day))
+    return age >= 19                                   # 내원일에 만 19세 이상 → 회색
+_ER = _dt.date(2026, 6, 15)                            # 내원일(예시)
+CHILD_CASES = [  # (생년월일, 내원일, 회색?)
+    (20100515, _ER, False),                 # 내원 당시 16세 → 흰색
+    (20070616, _ER, False),                 # 내원일 하루 뒤 생일=만18세 → 흰색
+    (20070615, _ER, True),                  # 내원일에 만19세 → 회색(경계)
+    (19700515, _ER, True),                  # 56세 → 회색
+    (20050101, _dt.date(2023, 1, 1), False),  # 내원 당시 18세(오늘이면 성인) → 흰색: 내원일 기준 확인
+    (20050101, _dt.date(2024, 6, 1), True),   # 내원 당시 19세 → 회색
+    (0, _ER, True), ("", _ER, True)]        # 미입력/무효 → 회색
 # 병원 퇴원시 PCPC=PCPC6(사망)/미상/미입력이면 6·12개월 추적관찰 회색
 def y_fu_grey(out): return out in ("PCPC 6 (사망)", "미상", "")
 Y_FU_CASES = [("PCPC 1 (뇌기능정상)", True), ("PCPC 5 (코마/식물인간)", True),
@@ -237,13 +261,16 @@ def main():
         assert (not etc_grey(p)) == w_ok, ("소아과거력기타", p)
     for v, w_ok in Y_FU_CASES:
         assert (not y_fu_grey(v)) == w_ok, ("소아추적관찰", v)
+    for dob, today, g in CHILD_CASES:
+        assert child_grey(dob, today) == g, ("소아연령게이트", dob)
     n = (len(CASES) + len(RESULT_CASES) + len(HOSP_CASES) + len(FU6_CASES)
          + len(CPC_CASES) + len(PREVENT_CASES) + len(COMMUNITY_CASES) + len(ETC_CASES)
          + len(RELIEF_CASES) + len(DOSE_CASES) + len(IN_HOSP_CASES) + len(EPINE_CASES)
          + len(UNIT_CASES) + len(STEROID_CASES) + len(PROC_CASES) + len(ECMO_CASES)
          + len(EXEC_CASES) + len(LAW_TEMP_CASES) + len(LAW_METHOD_CASES) + len(LAW_TS_CASES)
          + len(HYPER_CASES)
-         + len(Y12_PCPC_CASES) + len(YCHILD_ETC_CASES) + len(Y_FU_CASES))
+         + len(Y12_PCPC_CASES) + len(YCHILD_ETC_CASES) + len(Y_FU_CASES)
+         + len(CHILD_CASES))
     print(f"OK: {n} 시나리오 회색/흰색/경고 진리표 통과")
 
 if __name__ == "__main__":

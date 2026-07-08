@@ -18,32 +18,95 @@ import configparser
 from urllib.parse import urlsplit
 
 import tkinter as tk
+import tkinter.font as tkfont
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 
 import kocarc_bot as bot
 import build_template
 
-APP_TITLE = "KOCARC 환자 자동등록"
+APP_TITLE = "KOCARC AutoRegister"
 APP_SUBTITLE = "eCRF 환자 정보 일괄 자동등록"
 DEFAULT_LOGIN = "https://ecrf.kr/kocarc/"
 
-# ---------- 색상 팔레트 (깔끔한 의료용 블루) ----------
-BG = "#eef1f6"        # 창 배경
+# ---------- 색상 팔레트 (뉴트럴 미니멀 + 인디고 포인트) ----------
+BG = "#f5f6f8"        # 창 배경 (아주 옅은 회색)
 CARD = "#ffffff"      # 카드 배경
-BORDER = "#e2e6ee"    # 카드/입력칸 테두리
-INK = "#1f2937"       # 본문 글자
+BORDER = "#e6e8ee"    # 카드/입력칸 테두리
+INK = "#0f172a"       # 본문 글자 (슬레이트)
 MUTED = "#6b7280"     # 보조 글자
 FIELD = "#ffffff"     # 입력칸 배경
-ACCENT = "#2563eb"    # 강조(파랑)
-ACCENT_DK = "#1d4ed8"
-GOOD = "#059669"      # 시작(초록)
-GOOD_DK = "#047857"
-DANGER = "#dc2626"    # 중지(빨강)
+ACCENT = "#2142AB"    # 강조(딥 블루)
+ACCENT_DK = "#1a3589"
+GOOD = "#10b981"      # 시작(초록)
+GOOD_DK = "#059669"
+DANGER = "#dc2626"    # 오류/중지 상태 표시(빨강) — 상태 점·경고용
 DANGER_DK = "#b91c1c"
-SOFT = "#f1f5f9"      # 보조 버튼 배경
-SOFT_DK = "#e2e8f0"
-HEADER = "#1e3a8a"    # 헤더 배너(짙은 파랑)
-HEADER_SUB = "#bfd3f6"
+STOP = "#475569"      # 중지 버튼(슬레이트 그레이)
+STOP_DK = "#334155"
+SOFT = "#eef0f4"      # 보조 버튼 배경 / 상태바
+SOFT_DK = "#e2e5ec"
+HEADER = "#ffffff"    # 헤더 (밝게)
+HEADER_SUB = "#6b7280"
+
+
+def _round_rect_pts(x1, y1, x2, y2, r):
+    """둥근 사각형용 폴리곤 점들 (smooth=True 로 그리면 모서리가 둥글어진다)."""
+    return [x1 + r, y1, x2 - r, y1, x2, y1, x2, y1 + r, x2, y2 - r, x2, y2,
+            x2 - r, y2, x1 + r, y2, x1, y2, x1, y2 - r, x1, y1 + r, x1, y1]
+
+
+class RoundedButton(tk.Canvas):
+    """캔버스로 그린 둥근(알약형) 버튼. ttk 는 모서리를 못 둥글려서 직접 그림.
+    ttk 처럼 .configure(state="disabled"/"normal") 로 켜고 끌 수 있다."""
+
+    def __init__(self, parent, text, command=None, *, bg, hover, fg="#ffffff",
+                 disabled_bg=None, disabled_fg="#ffffff", container_bg="#ffffff",
+                 font=None, padx=20, pady=10, radius=None):
+        self._font = tkfont.Font(font=font) if font else tkfont.Font()
+        w = self._font.measure(text) + padx * 2
+        h = self._font.metrics("linespace") + pady * 2
+        r = h // 2 if radius is None else radius          # 기본 = 알약형(완전 둥근 끝)
+        super().__init__(parent, width=w, height=h, bg=container_bg,
+                         highlightthickness=0, bd=0, takefocus=0)
+        self._bg, self._hover, self._fg = bg, hover, fg
+        self._dbg = disabled_bg or bg
+        self._dfg = disabled_fg
+        self._cmd = command
+        self._enabled = True
+        self._shape = self.create_polygon(
+            _round_rect_pts(1, 1, w - 1, h - 1, r),
+            smooth=True, splinesteps=24, fill=bg, outline=bg)
+        self._label = self.create_text(w / 2, h / 2 + 1, text=text, fill=fg,
+                                        font=self._font)
+        super().configure(cursor="hand2")
+        self.bind("<Enter>", lambda e: self._enabled and self._paint(self._hover))
+        self.bind("<Leave>", lambda e: self._enabled and self._paint(self._bg))
+        self.bind("<ButtonRelease-1>", self._click)
+
+    def _paint(self, color):
+        self.itemconfigure(self._shape, fill=color, outline=color)
+
+    def _click(self, e):
+        if (self._enabled and self._cmd
+                and 0 <= e.x <= self.winfo_width()
+                and 0 <= e.y <= self.winfo_height()):
+            self._cmd()
+
+    def _set_enabled(self, on):
+        self._enabled = bool(on)
+        self._paint(self._bg if on else self._dbg)
+        self.itemconfigure(self._label, fill=self._fg if on else self._dfg)
+        super().configure(cursor="hand2" if on else "arrow")
+
+    def configure(self, cnf=None, **kw):
+        if cnf:
+            kw.update(cnf)
+        st = kw.pop("state", None)
+        if st is not None:
+            self._set_enabled(st != "disabled")
+        if kw:
+            super().configure(**kw)
+    config = configure
 
 
 class App:
@@ -73,27 +136,30 @@ class App:
         self._setup_fonts()
         self._setup_style()
 
-        # ===== 헤더 배너 =====
+        # ===== 헤더 (밝은 배경 + 인디고 액센트 바) =====
         header = tk.Frame(root, bg=HEADER)
         header.pack(fill="x")
-        hin = tk.Frame(header, bg=HEADER, padx=22, pady=14)
+        tk.Frame(header, bg=BORDER, height=1).pack(fill="x", side="bottom")  # 하단 구분선
+        hin = tk.Frame(header, bg=HEADER, padx=22, pady=16)
         hin.pack(fill="x")
+        tk.Frame(hin, bg=ACCENT, width=4).pack(side="left", fill="y", padx=(0, 13))
         htxt = tk.Frame(hin, bg=HEADER)
         htxt.pack(side="left", fill="x", expand=True)
-        tk.Label(htxt, text=APP_TITLE, bg=HEADER, fg="#ffffff",
+        tk.Label(htxt, text=APP_TITLE, bg=HEADER, fg=INK,
                  font=self.f_title, anchor="w").pack(fill="x")
         tk.Label(htxt, text=APP_SUBTITLE, bg=HEADER, fg=HEADER_SUB,
-                 font=self.f_small, anchor="w").pack(fill="x", pady=(2, 0))
+                 font=self.f_small, anchor="w").pack(fill="x", pady=(3, 0))
 
         # ===== 아래 고정 영역 (먼저 pack 해야 자리를 확보함) =====
         # 상태 표시줄 (맨 아래)
-        statusbar = tk.Frame(root, bg="#dfe4ee")
+        statusbar = tk.Frame(root, bg=SOFT)
         statusbar.pack(fill="x", side="bottom")
-        sbin = tk.Frame(statusbar, bg="#dfe4ee", padx=18, pady=7)
+        tk.Frame(statusbar, bg=BORDER, height=1).pack(fill="x", side="top")  # 상단 구분선
+        sbin = tk.Frame(statusbar, bg=SOFT, padx=18, pady=8)
         sbin.pack(fill="x")
-        self.status_dot = tk.Label(sbin, text="●", bg="#dfe4ee", fg=MUTED, font=self.f_small)
+        self.status_dot = tk.Label(sbin, text="●", bg=SOFT, fg=MUTED, font=self.f_small)
         self.status_dot.pack(side="left")
-        self.status_lbl = tk.Label(sbin, text="준비됨", bg="#dfe4ee", fg=INK,
+        self.status_lbl = tk.Label(sbin, text="준비됨", bg=SOFT, fg=INK,
                                    font=self.f_small, anchor="w")
         self.status_lbl.pack(side="left", padx=(6, 0))
 
@@ -122,13 +188,12 @@ class App:
         # 실행 버튼 (로그 위, 항상 보임)
         actions = tk.Frame(root, bg=BG, padx=18)
         actions.pack(fill="x", side="bottom", pady=(8, 10))
-        self.start_btn = ttk.Button(actions, text="▶  시작", style="Good.TButton", command=self.start)
-        self.start_btn.pack(side="left", ipadx=10, ipady=2)
-        self.stop_btn = ttk.Button(actions, text="■  중지", style="Danger.TButton",
-                                   command=self.stop, state="disabled")
-        self.stop_btn.pack(side="left", padx=(10, 0), ipadx=10, ipady=2)
-        ttk.Button(actions, text="로그 지우기", style="Soft.TButton",
-                   command=self.clear_log).pack(side="right")
+        self.start_btn = self._rbtn(actions, "▶  시작", self.start, "primary", BG)
+        self.start_btn.pack(side="left")
+        self.stop_btn = self._rbtn(actions, "■  중지", self.stop, "stop", BG)
+        self.stop_btn.configure(state="disabled")
+        self.stop_btn.pack(side="left", padx=(10, 0))
+        self._rbtn(actions, "로그 지우기", self.clear_log, "soft", BG).pack(side="right")
 
         # ===== 설정 카드 (스크롤 가능 영역, 남은 공간 차지) =====
         mid = tk.Frame(root, bg=BG)
@@ -152,10 +217,10 @@ class App:
         row1.pack(fill="x")
         self.excel_var = tk.StringVar(value=self._default_excel())
         ttk.Entry(row1, textvariable=self.excel_var).grid(row=0, column=0, sticky="ew")
-        ttk.Button(row1, text="찾기…", style="Soft.TButton",
-                   command=self.pick_excel).grid(row=0, column=1, padx=(8, 0))
-        ttk.Button(row1, text="빈 양식 만들기", style="Soft.TButton",
-                   command=self.make_template).grid(row=0, column=2, padx=(8, 0))
+        self._rbtn(row1, "찾기…", self.pick_excel, "soft", CARD).grid(
+            row=0, column=1, padx=(8, 0))
+        self._rbtn(row1, "빈 양식 만들기", self.make_template, "soft", CARD).grid(
+            row=0, column=2, padx=(8, 0))
         row1.columnconfigure(0, weight=1)
         tk.Label(c1, text="환자 정보를 채운 엑셀 파일을 선택하세요. 없으면 ‘빈 양식 만들기’로 시작합니다.",
                  bg=CARD, fg=MUTED, font=self.f_small, anchor="w").pack(fill="x", pady=(8, 0))
@@ -198,8 +263,7 @@ class App:
         tk.Label(
             c3,
             text=("• 새 환자 명단으로 '처음부터' 등록할 때만 체크하세요.\n"
-                  "• 이전 등록 기록(progress.csv)을 지웁니다. 그래야 엑셀을 비우고\n"
-                  "   환자키를 1부터 다시 써도, 이미 끝난 환자로 잘못 알고 건너뛰지 않습니다.\n"
+                  "• 이전 등록 기록(progress.csv)을 지웁니다. 그래야 환자키를 1부터 다시 써도 이미 끝난 환자로 잘못 알고 건너뛰지 않습니다.\n"
                   "• 하던 작업을 '이어서' 할 때는 체크하지 마세요 (기록이 사라집니다).\n"
                   "• 참고: 지난번에 전원 정상 완료됐다면 기록은 이미 자동으로 지워져 있습니다."),
             bg=CARD, fg=MUTED, font=self.f_small, justify="left", anchor="w"
@@ -213,13 +277,13 @@ class App:
 
     # ---------- 스타일 ----------
     def _setup_fonts(self):
-        fam = "Segoe UI"
+        fam = "Malgun Gothic"                     # Windows 기본, 한글 렌더링 깔끔
         self.f_title = (fam, 16, "bold")
-        self.f_section = (fam, 11, "bold")
+        self.f_section = (fam, 10, "bold")
         self.f_body = (fam, 10)
         self.f_small = (fam, 9)
         self.f_mono = ("Consolas", 9)
-        self.f_glyph = ("Segoe UI Symbol", 15)   # 라디오/체크 표시기용 (크게)
+        self.f_glyph = ("Segoe UI Symbol", 14)    # 라디오/체크 표시기용 (크게)
 
     def _setup_style(self):
         style = ttk.Style()
@@ -229,13 +293,25 @@ class App:
             pass
 
         # 입력칸
-        style.configure("TEntry", padding=7, relief="flat",
+        style.configure("TEntry", padding=8, relief="flat",
                         fieldbackground=FIELD, foreground=INK,
                         bordercolor=BORDER, lightcolor=BORDER, darkcolor=BORDER)
         style.map("TEntry",
                   bordercolor=[("focus", ACCENT)],
                   lightcolor=[("focus", ACCENT)],
                   darkcolor=[("focus", ACCENT)])
+
+        # 스크롤바: 화살표 버튼 제거하고 썸(thumb)만 있는 얇은 형태로
+        style.layout("Vertical.TScrollbar", [
+            ("Vertical.Scrollbar.trough", {
+                "sticky": "ns",
+                "children": [("Vertical.Scrollbar.thumb",
+                              {"expand": "1", "sticky": "nswe"})]})])
+        style.configure("Vertical.TScrollbar", troughcolor=BG, background="#aeb6c6",
+                        bordercolor=BG, relief="flat", borderwidth=0,
+                        width=11, gripcount=0)
+        style.map("Vertical.TScrollbar",
+                  background=[("active", "#8f98ac"), ("pressed", "#8f98ac")])
 
         # 라디오 / 체크 (카드 위에 얹힘)
         for name in ("TRadiobutton", "TCheckbutton"):
@@ -244,33 +320,48 @@ class App:
                       foreground=[("disabled", "#9aa3b2")])
 
         # 버튼 공통
-        base = dict(font=self.f_body, padding=(14, 8), relief="flat", borderwidth=0)
+        base = dict(font=self.f_body, padding=(16, 9), relief="flat", borderwidth=0)
 
-        style.configure("Good.TButton", background=GOOD, foreground="#ffffff", **base)
+        # 시작 = 주 색상(인디고)로 통일 — 헤더 액센트와 한 톤
+        style.configure("Good.TButton", background=ACCENT, foreground="#ffffff", **base)
         style.map("Good.TButton",
-                  background=[("active", GOOD_DK), ("pressed", GOOD_DK),
-                              ("disabled", "#a7d8c6")],
-                  foreground=[("disabled", "#eafaf2")])
+                  background=[("active", ACCENT_DK), ("pressed", ACCENT_DK),
+                              ("disabled", "#c7c9ee")],
+                  foreground=[("disabled", "#eef0ff")])
 
-        style.configure("Danger.TButton", background=DANGER, foreground="#ffffff", **base)
+        # 중지 = 슬레이트 그레이 (중립적, 파랑 강조색과 안 부딪힘)
+        style.configure("Danger.TButton", background=STOP, foreground="#ffffff", **base)
         style.map("Danger.TButton",
-                  background=[("active", DANGER_DK), ("pressed", DANGER_DK),
-                              ("disabled", "#e6b4b4")],
-                  foreground=[("disabled", "#fbeaea")])
+                  background=[("active", STOP_DK), ("pressed", STOP_DK),
+                              ("disabled", "#c3c9d2")],
+                  foreground=[("disabled", "#eef1f5")])
 
-        style.configure("Soft.TButton", background=SOFT, foreground=INK, **base)
+        # 보조 버튼 = 은은한 회색 + 진한 글자
+        style.configure("Soft.TButton", background="#e9ecf2", foreground="#334155", **base)
         style.map("Soft.TButton",
-                  background=[("active", SOFT_DK), ("pressed", SOFT_DK)])
+                  background=[("active", "#dbe0e9"), ("pressed", "#d1d7e2")])
+
+    def _rbtn(self, parent, text, command, kind, on):
+        """둥근 버튼 생성. kind: primary(시작)/stop(중지)/soft(보조). on=놓일 배경색."""
+        spec = {
+            "primary": (ACCENT, ACCENT_DK, "#ffffff", "#c7c9ee", "#eef0ff", 22),
+            "stop":    (STOP, STOP_DK, "#ffffff", "#c3c9d2", "#eef1f5", 22),
+            "soft":    ("#e9ecf2", "#dbe0e9", "#334155", "#e9ecf2", "#334155", 16),
+        }[kind]
+        bg, hv, fg, dbg, dfg, px = spec
+        return RoundedButton(parent, text, command, bg=bg, hover=hv, fg=fg,
+                             disabled_bg=dbg, disabled_fg=dfg, container_bg=on,
+                             font=self.f_body, padx=px)
 
     def _card(self, parent, title):
         """흰 카드 + 얇은 테두리. 내부 프레임(bg=CARD)을 돌려준다."""
         outer = tk.Frame(parent, bg=BORDER)
-        outer.pack(fill="x", pady=(0, 12))
-        inner = tk.Frame(outer, bg=CARD, padx=16, pady=14)
+        outer.pack(fill="x", pady=(0, 14))
+        inner = tk.Frame(outer, bg=CARD, padx=18, pady=16)
         inner.pack(fill="both", expand=True, padx=1, pady=1)
         if title:
             tk.Label(inner, text=title, bg=CARD, fg=ACCENT,
-                     font=self.f_section, anchor="w").pack(fill="x", pady=(0, 10))
+                     font=self.f_section, anchor="w").pack(fill="x", pady=(0, 12))
         return inner
 
     def _field_label(self, parent, text, row):
