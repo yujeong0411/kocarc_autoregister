@@ -28,25 +28,25 @@ APP_TITLE = "KOCARC AutoRegister"
 APP_SUBTITLE = "eCRF 환자 정보 일괄 자동등록"
 DEFAULT_LOGIN = "https://ecrf.kr/kocarc/"
 
-# ---------- 색상 팔레트 (뉴트럴 미니멀 + 인디고 포인트) ----------
-BG = "#f5f6f8"        # 창 배경 (아주 옅은 회색)
-CARD = "#ffffff"      # 카드 배경
-BORDER = "#e6e8ee"    # 카드/입력칸 테두리
-INK = "#0f172a"       # 본문 글자 (슬레이트)
-MUTED = "#6b7280"     # 보조 글자
+# ---------- 색상 팔레트 (세련된 딥 에메랄드 그린 + 세이지 배경, 흰 카드) ----------
+BG = "#d3e0d8"        # 창 배경 (세이지 그린 — 흰 카드가 도드라지게 진하게)
+CARD = "#ffffff"      # 카드 배경 (흰색)
+BORDER = "#c2d2c8"    # 카드/입력칸 테두리 (세이지)
+INK = "#1e2a24"       # 본문 글자 (짙은 그린슬레이트)
+MUTED = "#5f6f65"     # 보조 글자
 FIELD = "#ffffff"     # 입력칸 배경
-ACCENT = "#2142AB"    # 강조(딥 블루)
-ACCENT_DK = "#1a3589"
-GOOD = "#10b981"      # 시작(초록)
-GOOD_DK = "#059669"
-DANGER = "#dc2626"    # 오류/중지 상태 표시(빨강) — 상태 점·경고용
-DANGER_DK = "#b91c1c"
-STOP = "#475569"      # 중지 버튼(슬레이트 그레이)
-STOP_DK = "#334155"
-SOFT = "#eef0f4"      # 보조 버튼 배경 / 상태바
-SOFT_DK = "#e2e5ec"
-HEADER = "#ffffff"    # 헤더 (밝게)
-HEADER_SUB = "#6b7280"
+ACCENT = "#2E6B52"    # 강조(세련된 딥 에메랄드 그린)
+ACCENT_DK = "#235340"  # 강조 hover/pressed
+GOOD = "#3E8E63"      # 완료 상태(밝은 그린)
+GOOD_DK = "#2E6B52"
+DANGER = "#c05e5e"    # 오류 상태(부드러운 브릭레드) — 상태 점·경고용
+DANGER_DK = "#a64a4a"
+STOP = "#7e8c84"      # 중지 버튼(세이지 그레이)
+STOP_DK = "#68766e"
+SOFT = "#e3ede7"      # 보조 버튼 배경 / 상태바 (연한 세이지)
+SOFT_DK = "#d2dfd8"
+HEADER = "#ffffff"    # 헤더 (흰 카드처럼 — 세이지 배경 위에서 도드라짐)
+HEADER_SUB = "#5f6f65"
 
 
 def _round_rect_pts(x1, y1, x2, y2, r):
@@ -212,7 +212,7 @@ class App:
         self.canvas.bind("<MouseWheel>", self._on_wheel)
 
         # --- 1) 입력 엑셀 ---
-        c1 = self._card(body, "1) 입력 엑셀")
+        c1 = self._card(body, "1. 입력 엑셀")
         row1 = tk.Frame(c1, bg=CARD)
         row1.pack(fill="x")
         self.excel_var = tk.StringVar(value=self._default_excel())
@@ -226,26 +226,33 @@ class App:
                  bg=CARD, fg=MUTED, font=self.f_small, anchor="w").pack(fill="x", pady=(8, 0))
 
         # --- 2) 로그인 ---
-        c2 = self._card(body, "2) 로그인")
+        c2 = self._card(body, "2. 로그인")
         g2 = tk.Frame(c2, bg=CARD)
         g2.pack(fill="x")
+        # 로그인 주소 (한 줄 전체)
         self._field_label(g2, "로그인 주소", 0)
         self.login_var = tk.StringVar(value=DEFAULT_LOGIN)
-        ttk.Entry(g2, textvariable=self.login_var).grid(row=0, column=1, sticky="ew", pady=4)
+        ttk.Entry(g2, textvariable=self.login_var).grid(
+            row=0, column=1, columnspan=3, sticky="ew", pady=4)
+        # 아이디 · 비밀번호 (한 줄에 나란히)
         self._field_label(g2, "아이디", 1)
         saved_id = self._load_saved_id()
         self.id_var = tk.StringVar(value=saved_id)
-        ttk.Entry(g2, textvariable=self.id_var).grid(row=1, column=1, sticky="ew", pady=4)
+        ttk.Entry(g2, textvariable=self.id_var).grid(
+            row=1, column=1, sticky="ew", padx=(0, 16), pady=4)
+        self._field_label(g2, "비밀번호", 1, col=2)
+        self.pw_var = tk.StringVar()
+        ttk.Entry(g2, textvariable=self.pw_var, show="●").grid(
+            row=1, column=3, sticky="ew", pady=4)
+        # 아이디 저장
         self.save_id_var = tk.BooleanVar(value=bool(saved_id))
         self._check(g2, "아이디 저장", self.save_id_var).grid(
-            row=2, column=1, sticky="w", pady=(0, 4))
-        self._field_label(g2, "비밀번호", 3)
-        self.pw_var = tk.StringVar()
-        ttk.Entry(g2, textvariable=self.pw_var, show="●").grid(row=3, column=1, sticky="ew", pady=4)
+            row=2, column=1, columnspan=3, sticky="w", pady=(0, 4))
         g2.columnconfigure(1, weight=1)
+        g2.columnconfigure(3, weight=1)
 
         # --- 3) 옵션 ---
-        c3 = self._card(body, "3) 옵션")
+        c3 = self._card(body, "3. 옵션")
         g3 = tk.Frame(c3, bg=CARD)
         g3.pack(fill="x")
         self._field_label(g3, "특정 환자키만 (예: 1,2 / 비우면 전체)", 0)
@@ -307,11 +314,11 @@ class App:
                 "sticky": "ns",
                 "children": [("Vertical.Scrollbar.thumb",
                               {"expand": "1", "sticky": "nswe"})]})])
-        style.configure("Vertical.TScrollbar", troughcolor=BG, background="#aeb6c6",
+        style.configure("Vertical.TScrollbar", troughcolor=BG, background="#a7b6ac",
                         bordercolor=BG, relief="flat", borderwidth=0,
                         width=11, gripcount=0)
         style.map("Vertical.TScrollbar",
-                  background=[("active", "#8f98ac"), ("pressed", "#8f98ac")])
+                  background=[("active", "#8b9a90"), ("pressed", "#8b9a90")])
 
         # 라디오 / 체크 (카드 위에 얹힘)
         for name in ("TRadiobutton", "TCheckbutton"):
@@ -344,9 +351,9 @@ class App:
     def _rbtn(self, parent, text, command, kind, on):
         """둥근 버튼 생성. kind: primary(시작)/stop(중지)/soft(보조). on=놓일 배경색."""
         spec = {
-            "primary": (ACCENT, ACCENT_DK, "#ffffff", "#c7c9ee", "#eef0ff", 22),
-            "stop":    (STOP, STOP_DK, "#ffffff", "#c3c9d2", "#eef1f5", 22),
-            "soft":    ("#e9ecf2", "#dbe0e9", "#334155", "#e9ecf2", "#334155", 16),
+            "primary": (ACCENT, ACCENT_DK, "#ffffff", "#aecdb8", "#eef6f0", 22),
+            "stop":    (STOP, STOP_DK, "#ffffff", "#c9d2cb", "#eef2ef", 22),
+            "soft":    (SOFT, SOFT_DK, "#33513f", SOFT, "#33513f", 16),
         }[kind]
         bg, hv, fg, dbg, dfg, px = spec
         return RoundedButton(parent, text, command, bg=bg, hover=hv, fg=fg,
@@ -364,9 +371,9 @@ class App:
                      font=self.f_section, anchor="w").pack(fill="x", pady=(0, 12))
         return inner
 
-    def _field_label(self, parent, text, row):
+    def _field_label(self, parent, text, row, col=0):
         tk.Label(parent, text=text, bg=CARD, fg=INK, font=self.f_body, anchor="w"
-                 ).grid(row=row, column=0, sticky="w", padx=(0, 12), pady=4)
+                 ).grid(row=row, column=col, sticky="w", padx=(0, 12), pady=4)
 
     def _check(self, parent, text, var, command=None):
         """표시기를 직접 그리는 체크박스 (글자 배율에 맞춰 크게 보임)."""
@@ -383,7 +390,7 @@ class App:
 
         def refresh(*_):
             on = bool(var.get())
-            glyph.configure(text="☑" if on else "☐", fg=ACCENT if on else "#9aa3b2")
+            glyph.configure(text="☑" if on else "☐", fg=ACCENT if on else "#9aa89e")
 
         for w in (row, glyph, lbl):
             w.bind("<Button-1>", on_click)

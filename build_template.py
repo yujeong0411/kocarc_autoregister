@@ -81,19 +81,406 @@ SHEET_NAMES = {
     "comment": "CommentLog",
 }
 
-HEADER_FILL = PatternFill("solid", fgColor="6BA68C")
+HEADER_FILL = PatternFill("solid", fgColor="C5E1A5")
 NAME_FILL = PatternFill("solid", fgColor="EAF1ED")
-KEY_FILL = PatternFill("solid", fgColor="FFF2CC")
+KEY_FILL = PatternFill("solid", fgColor="E8F0E3")
 SECTION_FILL = PatternFill("solid", fgColor="D9E8DF")
+
+# 시트 탭 색: 임상 타임라인 순서대로 짙은 초록 → 연초록 그라데이션(초록 한 계열).
+# 안내(사용법)는 가장 짙게, 참고(코드북)·헬퍼(_목록)는 뉴트럴 회색으로 구분.
+TAB_COLOR = {
+    "사용법": "1B5E20",      # 안내 (짙은 초록)
+    "_목록": "CFD8DC",       # 드롭다운 헬퍼 목록 (연회색)
+    "환자목록": "2E7D32",    # 시작점 (브랜드 초록)
+    "공통영역": "388E3C",
+    "예방역학": "43A047",
+    "지역사회": "4CAF50",
+    "구급단계": "66BB6A",
+    "병원단계": "81C784",
+    "소생후단계": "9CCC9E",
+    "심장검사": "A5D6A7",
+    "소아소생술": "C5E1A5",  # 연초록 (소아)
+    "코드북": "B0BEC5",      # 참고 (블루그레이)
+}
 
 # 입력칸(데이터 행) 공통 서식: 폰트 10, 가운데정렬, 셀에 맞춤(축소).
 INPUT_FONT = Font(size=10)
 INPUT_ALIGN = Alignment(horizontal="center", vertical="center", shrink_to_fit=True)
-WHITE_BOLD = Font(bold=True, color="FFFFFF", size=10)
+HEADER_FONT = Font(name="맑은 고딕", bold=False, color="000000", size=10)  # 검은 글자(굵기 없음)
 NAME_FONT = Font(color="888888", size=8)
 THIN = Side(style="thin", color="BBBBBB")
 BORDER = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 CENTER = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+# 헤더 라벨 수동 줄바꿈 override. { 시트명: { "화면 라벨": "원하는\n줄바꿈\n텍스트" } }
+# 여기 없는 라벨은 지금처럼 폭에 맞춰 자동 줄바꿈. 2행(필드명)은 안 건드리므로 봇 무관.
+HEADER_WRAP = {
+    "환자목록": {
+        "등록병원 응급실 내원시각": "등록병원 응급실\n내원시각",
+    },
+    "공통영역": {
+        "등록병원 응급실 내원 경로": "등록병원 응급실\n내원 경로",
+        "등록병원 응급실 내원시 상태": "등록병원 응급실\n내원시 상태",
+        "심정지 발생장소 시군구": "심정지 발생장소\n시군구",
+        "응급실 심폐소생술 중단일시": "응급실 심폐소생술\n중단일시",
+    },
+    "지역사회": {
+        "심정지 목격여부 - 발생(목격)추정시각": "심정지 목격여부 -\n발생(목격)추정시각",
+        "목격자 심폐소생술 최초 시행자 성별": "목격자 심폐소생술\n최초 시행자 성별",
+    },
+    "구급단계": {
+        "구급대 심폐소생술 시작일시": "구급대 심폐소생술\n시작일시",
+        "구급대 심폐소생술 종료일시": "구급대 심폐소생술\n종료일시",
+        "구급대 현장 제세동 횟수": "구급대 현장\n제세동 횟수",
+        "구급대 제세동 - 첫 시행일시": "구급대 제세동 -\n첫 시행일시",
+        "구급대 기계식 흉부압박 장치 적용": "구급대 기계식 흉부\n압박 장치 적용",
+        "구급대 기계식 흉부압박 장치 적용 - 적용일시": "구급대 기계식 흉부압박\n장치 적용 - 적용일시",
+        "병원전 자발순환회복": "병원전 자발\n순환회복",
+        "병원전 자발순환회복 - 회복일시": "병원전 자발순환회복 -\n회복일시",
+        "구급대 에피네프린 총 투여 용량 (mg)": "구급대 에피네프린\n총 투여 용량 (mg)",
+        "구급대 아미오다론 총 투여 용량 (mg)": "구급대 아미오다론\n총 투여 용량 (mg)",
+        "구급대 바소프레신 총 투여 용량 (IU)": "구급대 바소프레신\n총 투여 용량 (IU)",
+    },
+    "병원단계": {
+        "타병원 자발순환회복 - 회복시각": "타병원 자발순환회복 -\n회복시각",
+        "등록병원 최초심전도 - 심정지리듬": "등록병원 최초심전도 -\n심정지리듬",
+        "에피네프린 용량 (미상/미사용)": "에피네프린 용량\n(미상/미사용)",
+        "첫 Advanced Airway 종류": "첫 Advanced Airway\n종류",
+        "첫 Advanced Airway 종류 (기타)": "첫 Advanced Airway\n종류 (기타)",
+        "Mechanical CPR 시행": "Mechanical\nCPR 시행",
+        "ECMO 시술 (CANNULATION) 시작시점": "ECMO 시술\n(CANNULATION) 시작시점",
+        "ECMO 시술 (CANNULATION) 완료시점": "ECMO 시술\n(CANNULATION) 완료시점",
+        "ECMO 기계 작동 성공": "ECMO 기계\n작동 성공",
+        "ROSC 후 최초 측정된 S-Albumin (g/dL)": "ROSC 후 최초 측정된\nS-Albumin (g/dL)",
+        "자발순환 회복시 체온 (℃)": "자발순환 회복시\n체온 (℃)",
+        "심폐소생술 중 cold saline 투여": "심폐소생술 중\ncold saline 투여",
+    },
+    "소생후단계": {
+        "자발순환회복 24시간 이내 사용된 승압제": "자발순환회복 24시간 이내 사용된\n승압제",
+        "자발순환회복 24시간 이내 사용된 승압제 (기타)": "자발순환회복 24시간 이내 사용된\n승압제 (기타)",
+        "재관류요법 시행 - 시행시기": "재관류요법 시행 -\n시행시기",
+        "자발순환회복 후 첫 pH": "자발순환회복\n후 첫 pH",
+        "자발순환회복 후 첫 lactate (mg/dL)": "자발순환회복 후\n첫 lactate (mg/dL)",
+        "목표체온조절 적용": "목표체온조절\n적용",
+        "목표체온조절 요법 시작일시": "목표체온조절 요법\n시작일시",
+        "재가온 요법 시작일시": "재가온 요법\n시작일시",
+        "목표체온조절 목표온도": "목표체온조절\n목표온도",
+        "목표체온조절 목표온도 (기타)": "목표체온조절\n목표온도 (기타)",
+        "입원 중 ECMO 시행 여부": "입원 중 ECMO\n시행 여부",
+        "입원 중 ECMO 시행 여부 - 시행일시": "입원 중 ECMO 시행 여부\n- 시행일시",
+    },
+}
+
+# 헤더 컬럼 너비 override. KOCARC_.xlsx 사용자 파일의 열 너비를 시트별로 그대로 반영.
+HEADER_WIDTH = {
+    '환자목록': {
+        '등록병원 응급실 내원시각': 17.0,
+        '피험자 이니셜': 12.0,
+        '성별': 12.0,
+        '생년월일': 12.0,
+    },
+    '공통영역': {
+        '국적': 12.0,
+        '등록병원 응급실 내원 경로': 14.25,
+        '등록병원 응급실 내원시 상태': 14.5,
+        '심정지 발생장소 시군구': 16.0,
+        '응급실 심폐소생술1': 20.58,
+        '응급실 심폐소생술2': 18.75,
+        '응급실 심폐소생술 중단일시': 18.0,
+        '응급실 Any ROSC 일시': 16.08,
+        '응급실 Sustained ROSC 일시': 16.5,
+        '응급실 결과': 12.0,
+        '응급실 사망일시': 14.16,
+        '응급실 퇴실일시': 14.16,
+        '생존입원 일시': 12.0,
+        '생존입원 병실': 12.0,
+        '생존입원 당시 의식상태': 19.33,
+        '병원치료결과': 12.0,
+        '병원퇴원일시(생존퇴원인 경우)': 15.75,
+        '병원사망일시(사망퇴원인 경우)': 15.75,
+        '병원퇴원시 신경학적상태': 20.58,
+        '6개월 후 생존': 12.0,
+        '6개월 후 사망일시': 16.33,
+        '6개월 후 신경학적 상태': 19.25,
+        '↩자동참조(수정·삭제 금지)': 13.0,
+    },
+    '예방역학': {
+        '병전상태': 15.16,
+        '가족력 - 1. 급성심정지': 15.5,
+        '가족력 - 2. 협심증 또는 심근경색': 15.5,
+        '가족력 - 3. 뇌졸중': 15.5,
+        '가족력 - 4. 부정맥': 15.5,
+        '흡연': 12.0,
+        '음주': 12.0,
+        '고혈압 - 병원에서 진단': 11.5,
+        '고혈압 - 치료': 11.5,
+        '고혈압 - 치료 (상세)': 17.0,
+        '당뇨 - 병원에서 진단': 10.66,
+        '당뇨 - 치료': 10.66,
+        '당뇨 - 치료 (상세)': 16.0,
+        '이상지질혈증 - 병원에서 진단': 12.66,
+        '이상지질혈증 - 치료': 12.66,
+        '이상지질혈증 - 치료 (상세)': 23.58,
+    },
+    '지역사회': {
+        '심정지 목격여부': 13.66,
+        '심정지 목격여부 - 발생(목격)추정시각': 18.83,
+        '목격자/발견자': 14.5,
+        '목격자/발견자 (기타)': 17.25,
+        '발생장소': 13.91,
+        '발생장소 (기타)': 15.83,
+        '일반인 심폐 소생술': 16.5,
+        '일반인 자동제세동': 15.33,
+        '병원 전 첫 심전도리듬': 18.0,
+        '목격자 심폐소생술 최초 시행자 성별': 15.33,
+        '↩자동참조(수정·삭제 금지)': 13.0,
+    },
+    '구급단계': {
+        '출동재난번호': 14.33,
+        '구급대 출동요청일시': 16.83,
+        '구급대 현장도착일시': 16.83,
+        '구급대 현장출발일시': 16.83,
+        '출동 종류': 12.0,
+        '구급대 최초심전도': 15.83,
+        '구급대 최초심전도 - 심정지리듬': 17.75,
+        '구급대 최초심전도 - 심정지리듬 (기타)': 16.16,
+        '구급대 심폐소생술 시작일시': 16.5,
+        '구급대 심폐소생술 종료일시': 16.5,
+        '구급대 현장 제세동 횟수': 11.58,
+        '구급대 제세동': 12.0,
+        '구급대 제세동 - 첫 시행일시': 14.16,
+        '구급대 기계식 흉부압박 장치 적용': 15.33,
+        '구급대 기계식 흉부압박 장치 적용 - 적용일시': 20.41,
+        '병원전 자발순환회복': 14.0,
+        '병원전 자발순환회복 - 회복일시': 18.41,
+        '구급대 기도확보': 13.75,
+        '구급대 기도확보 (상세)': 18.66,
+        '구급대 약물 사용': 14.33,
+        '구급대 약물 사용 (상세)': 20.08,
+        '구급대 에피네프린 총 투여 용량 (mg)': 16.25,
+        '구급대 아미오다론 총 투여 용량 (mg)': 16.25,
+        '구급대 바소프레신 총 투여 용량 (IU)': 16.25,
+        '↩자동참조(수정·삭제 금지)': 13.0,
+    },
+    '병원단계': {
+        '타병원 자발순환회복': 17.0,
+        '타병원 자발순환회복 - 회복시각': 19.25,
+        '등록병원 최초심전도': 19.58,
+        '등록병원 최초심전도 - 심정지리듬': 19.41,
+        '에피네프린 용량 (응급실 CPR 시행 환자)': 20.41,
+        '에피네프린 용량 (Sustained ROSC 환자)': 20.41,
+        '에피네프린 용량 (미상/미사용)': 14.08,
+        '제세동 횟수': 12.0,
+        '기관삽관': 15.33,
+        '첫 Advanced Airway 종류': 18.91,
+        '첫 Advanced Airway 종류 (기타)': 18.91,
+        '첫 IV 확보 종류': 14.0,
+        '첫 IV 확보 종류 (기타)': 19.0,
+        'Mechanical CPR 시행': 14.41,
+        'ETCO2 시행': 12.0,
+        'WBC (*10 3 /㎕)': 11.16,
+        'Hb (g/dl)': 11.16,
+        'PLT (*10 3 /㎕)': 11.16,
+        'Serum Cr (mg/dL)': 11.16,
+        'MCH (pg)': 11.16,
+        'MCV (fL)': 11.16,
+        'MCHC (g/dL)': 11.16,
+        'RDW (%)': 11.16,
+        'Na (mmol/L)': 11.16,
+        'K (mmol/L)': 11.16,
+        'Cl (mmol/L)': 11.16,
+        'BUN (mg/dL)': 11.0,
+        'GOT (IU/L)': 11.0,
+        'GPT (IU/L)': 11.0,
+        'Total biliubin (mg/dL)': 11.91,
+        'Ca (mg/dL)': 11.0,
+        'iCa (단위)': 8.91,
+        'iCa': 12.0,
+        'Mg (단위)': 9.16,
+        'Mg': 12.0,
+        'P (mg/dL)': 13.0,
+        'Total Prot (g/dL)': 15.33,
+        'Albumin (g/dL)': 15.33,
+        'Glucose (mg/dL)': 15.33,
+        'Total Chol (mg/dL)': 15.33,
+        'Base excess (단위)': 11.66,
+        'Base excess': 12.5,
+        'PT (단위)': 8.16,
+        'PT': 8.75,
+        'aPTT (sec)': 11.75,
+        'PT INR (INR)': 11.75,
+        'pH (ph)': 9.16,
+        'pCO2 (mmHg)': 9.16,
+        'pO2 (mmHg)': 9.16,
+        'SaO2 (%)': 9.16,
+        'HCO3 (mmol/L)': 9.16,
+        'S-100 (단위)': 7.83,
+        'S-100': 12.25,
+        'NSE (ng/mL)': 12.25,
+        'd-dimer (단위)': 9.41,
+        'd-dimer': 12.0,
+        'Lactate (단위)': 8.41,
+        'Lactate': 12.0,
+        'Total Defib E. (J)': 11.33,
+        'Vasopressin 투여량 (IU)': 11.33,
+        'Bicarbonate 투여량 (단위)': 11.33,
+        'Bicarbonate 투여량': 10.33,
+        'Amiodarone 투여량 (단위)': 12.33,
+        'Amiodarone 투여량': 11.75,
+        'Steroid - 종류': 14.83,
+        'Steroid - 종류 (기타)': 21.0,
+        'Steroid - 투여량 (단위)': 14.66,
+        'Steroid - 투여량': 17.16,
+        'lidocaine 투여량 (단위)': 15.0,
+        'lidocaine 투여량': 14.66,
+        'Ca-gluconate 투여량 (단위)': 11.58,
+        'Ca-gluconate 투여량': 13.08,
+        'CaCl 투여량 (mg)': 15.25,
+        'ECMO 시행': 12.0,
+        'ECMO 요청': 12.0,
+        'ECMO 시도': 12.0,
+        'ECMO 시술 (CANNULATION) 시작시점': 22.41,
+        'ECMO 시술 (CANNULATION) 완료시점': 22.41,
+        'ECMO Pump-on 시점': 19.0,
+        'ECMO Pump-off 시점': 20.0,
+        'ECMO 기계 작동 성공': 10.41,
+        'ROSC 후 최초 측정된 S-Albumin (g/dL)': 18.16,
+        'ROSC 후 첫 12리드 심전도': 22.08,
+        'ROSC 후 첫 12리드 심전도 (기타)': 23.0,
+        '자발순환 회복시 체온 (℃)': 14.41,
+        '심폐소생술 중 cold saline 투여': 14.08,
+        '↩자동참조(수정·삭제 금지)': 13.0,
+    },
+    '소생후단계': {
+        '자발순환 직후 SBP (mmHg)': 13.75,
+        '자발순환 직후 DBP (mmHg)': 13.75,
+        '자발순환 직후 PR (회/min)': 13.75,
+        '승압제': 17.08,
+        '자발순환회복 24시간 이내 사용된 승압제': 27.08,
+        '자발순환회복 24시간 이내 사용된 승압제 (기타)': 34.16,
+        '재관류요법 시행': 14.58,
+        '재관류요법 시행 - 시행시기': 14.83,
+        '혈전용해제': 12.0,
+        '혈전용해제 - 시행일시': 18.25,
+        '심혈관조영술': 12.0,
+        '심혈관조영술 - 시행일시': 19.91,
+        '관상동맥성형술': 13.75,
+        '관상동맥성형술 - 시행일시': 21.5,
+        '관상동맥우회술': 13.66,
+        '관상동맥우회술 - 시행일시': 21.91,
+        '삽입형 심박동기': 13.08,
+        '삽입형 제세동기': 13.08,
+        '자발순환회복 후 첫 pH': 12.75,
+        '자발순환회복 후 첫 lactate (mg/dL)': 20.41,
+        '목표체온조절 적용': 11.33,
+        '체외저온법1 (icepack, 냉각용담요, 선풍기 등)': 18.58,
+        '체외저온법2 (상품화된 기계, Artic Sun 등)': 18.58,
+        '정맥내저온법 (상품화된 기계, Coolgard300 등)': 18.58,
+        '체내저온법 (차가운 생리 식염수 세척, cold saline IV 등)': 18.58,
+        '목표체온조절 요법 시작일시': 15.66,
+        '재가온 요법 시작일시': 14.83,
+        '목표체온조절 목표온도': 15.0,
+        '목표체온조절 목표온도 (기타)': 20.0,
+        '재가온 속도': 12.0,
+        '재가온 속도 (기타)': 15.0,
+        '입원 중 ECMO 시행 여부': 13.08,
+        '입원 중 ECMO 시행 여부 - 시행일시': 20.58,
+        'SSEP 시행': 12.0,
+        'SSEP 시행 - 시행일시': 18.0,
+        'SSEP 시행 - 검사결과': 18.0,
+        'EEG 시행': 12.0,
+        'EEG 시행 - 시행일시': 17.0,
+        'EEG 시행 - 검사결과': 17.0,
+        'Brain CT 시행': 15.0,
+        'Brain CT 시행 - 시행일시': 14.33,
+        'Brain CT 시행 - 검사결과': 22.0,
+        'Brain MRI 시행': 16.0,
+        'Brain MRI 시행 - 시행일시': 15.25,
+        'Brain MRI 시행 - 검사결과': 23.0,
+        '자발순환회복 직후 Glasgow Coma Scale': 22.33,
+        '자발순환회복 직후 Glasgow Coma Scale - E (개안)': 22.33,
+        '자발순환회복 직후 Glasgow Coma Scale - V (언어)': 22.33,
+        '자발순환회복 직후 Glasgow Coma Scale - M (운동)': 22.33,
+        '자발순환회복 직후 Pupillary Light Reflex': 19.08,
+        '자발순환회복 직후 Pupillary Light Reflex - 검사 결과': 23.08,
+        '자발순환회복 직후 Corneal Reflex': 18.5,
+        '자발순환회복 직후 Corneal Reflex - 검사 결과': 23.08,
+        '자발순환회복 직후 Self respiration': 17.5,
+        '자발순환회복 직후 Self respiration - 검사 결과': 22.25,
+        '자발순환회복 72시간째 Glasgow Coma Scale': 21.66,
+        '자발순환회복 72시간째 Glasgow Coma Scale - E (개안)': 26.58,
+        '자발순환회복 72시간째 Glasgow Coma Scale - V (언어)': 26.58,
+        '자발순환회복 72시간째 Glasgow Coma Scale - M (운동)': 26.58,
+        '자발순환회복 72시간째 Pupillary Light Reflex': 19.58,
+        '자발순환회복 72시간째 Pupillary Light Reflex - 검사 결과': 26.08,
+        '자발순환회복 72시간째 Corneal Reflex': 20.25,
+        '자발순환회복 72시간째 Corneal Reflex - 검사 결과': 26.0,
+        '자발순환회복 72시간째 Self respiration': 20.91,
+        '자발순환회복 72시간째 Self respiration - 검사 결과': 24.33,
+        '↩자동참조(수정·삭제 금지)': 13.0,
+    },
+    '심장검사': {
+        '내원시 시행 CKMB': 17.08,
+        '내원시 시행 CKMB (단위)': 12.83,
+        '내원시 시행 CKMB (시행일시)': 15.66,
+        '내원 후 CKMB peak': 11.25,
+        '내원 후 CKMB peak (단위)': 13.16,
+        '내원 후 CKMB peak (시행일시)': 16.33,
+        '내원시 시행 Troponin I': 10.91,
+        '내원시 시행 Troponin I (단위)': 16.33,
+        '내원시 시행 Troponin I (시행일시)': 19.41,
+        '내원 후 Troponin I peak': 17.0,
+        '내원 후 Troponin I peak (단위)': 16.66,
+        '내원 후 Troponin I peak (시행일시)': 19.25,
+        '내원시 시행 Troponin T': 13.08,
+        '내원시 시행 Troponin T (단위)': 16.25,
+        '내원시 시행 Troponin T (시행일시)': 19.16,
+        '내원 후 Troponin T peak': 16.41,
+        '내원 후 Troponin T peak (단위)': 16.58,
+        '내원 후 Troponin T peak (시행일시)': 19.83,
+        '내원시 시행 BNP': 14.0,
+        '내원시 시행 BNP (단위)': 10.66,
+        '내원시 시행 NT pro-BNP': 14.5,
+        '내원시 시행 NT pro-BNP (단위)': 14.58,
+        '내원 24시간이내 심전도': 14.33,
+        '내원 24시간이내 심초음파': 14.33,
+        '내원 24시간이내 심초음파 - 국소벽장애': 21.5,
+        'CAG - 24시간 이내': 17.0,
+        'CAG (24시간 이내) - 결과': 20.83,
+        'CAG (24시간 이내) - 결과 (기타)': 27.0,
+        'CAG - 24-72시간 이내': 20.0,
+        'CAG (24-72시간 이내) - 결과': 25.0,
+        'CAG (24-72시간 이내) - 결과 (기타)': 28.0,
+        'CAG - 7일-퇴원 전': 17.0,
+        'CAG (7일-퇴원 전) - 결과': 22.0,
+        'CAG (7일-퇴원 전) - 결과 (기타)': 27.0,
+        '↩자동참조(수정·삭제 금지)': 13.0,
+    },
+    '소아소생술': {
+        '신장 (cm)': 8.5,
+        '체중': 8.5,
+        '보험 종류': 9.58,
+        '구급대 이송여부': 9.66,
+        'CPR 시행장소 소아구역(응급실) 여부': 18.58,
+        '입원장소의 소아중환자실 여부': 14.25,
+        '심정지 원인': 13.91,
+        '등록병원 응급실에서 전원된 경우 병원명': 17.83,
+        '병원 퇴원시 PCPC': 15.0,
+        '6개월 후 PCPC': 14.0,
+        '12개월 후 생존': 13.0,
+        '12개월 후 PCPC': 15.0,
+        '사망일시': 12.0,
+        '미숙아 출생여부': 7.33,
+        '출생 후 중환자실 입원여부': 14.16,
+        '소아 심정지 전 연령에 맞는 독립적인 생활 가능 여부': 18.25,
+        '소아 심정지 전 과거력': 11.33,
+        '소아 심정지 전 과거력 (기타)': 17.33,
+        '기저 신경학적상태 PCPC': 18.0,
+    },
+}
+
+# 너비 범위 override는 사용 안 함(모든 열에 개별 너비를 지정하므로).
+HEADER_WIDTH_RANGE = {}
 
 
 def load_schema(schema_path=None):
@@ -488,14 +875,15 @@ def write_columns(ws, fields, n_rows, list_ctx=None):
             marker = DT_PREFIX + ",".join(x["name"] for x in dts)
             _write_header(ws, col, disp, marker)
             # 12자리 숫자로 입력하면 셀에 2026-06-15 05:02 로 자동 표시(저장값은 숫자).
-            for r in range(4, 4 + n_rows):
+            # 예시행(3행)도 포함해야 예시값이 시각(AM/PM)으로 파싱되지 않고 형식대로 표시됨.
+            for r in range(3, 4 + n_rows):
                 ws.cell(row=r, column=col).number_format = "0000-00-00 00\\:00"
             prompt = "12자리 숫자로 입력하면 2026-06-15 05:02 로 자동 표시 (예: 202606150502)"
             if len(dts) == 4:  # 미상 흡수됨
                 prompt += "  ·  모르면 '미상'"
             dv = DataValidation(showInputMessage=True, promptTitle="일시 입력형식",
                                 prompt=prompt)
-            example = "2026-06-15 09:30"
+            example = 202606150930
         elif spec[0] == "dob":
             parts = spec[1:]  # (년, 월, 일 셀렉트)
             for x in parts:
@@ -508,11 +896,12 @@ def write_columns(ws, fields, n_rows, list_ctx=None):
             marker = DOB_PREFIX + ",".join(x["name"] for x in parts)
             _write_header(ws, col, disp, marker)
             # 8자리 숫자로 입력하면 셀에 1970-05-15 로 자동 표시(저장값은 숫자 그대로).
-            for r in range(4, 4 + n_rows):
+            # 예시행(3행)도 포함해야 예시값이 날짜로 파싱되지 않고 형식대로 표시됨.
+            for r in range(3, 4 + n_rows):
                 ws.cell(row=r, column=col).number_format = "0000-00-00"
             dv = DataValidation(showInputMessage=True, promptTitle="생년월일 입력형식",
                                 prompt="8자리 숫자로 입력하면 1970-05-15 로 자동 표시됩니다.")
-            example = "1970-05-15"
+            example = 19700515
         elif spec[0] == "single":
             f = spec[1]
             colmap[f["name"]] = col
@@ -579,6 +968,13 @@ def write_columns(ws, fields, n_rows, list_ctx=None):
         elif not example and dv is not None and dv.type == "list" \
                 and dv.formula1 and dv.formula1.startswith('"'):
             example = dv.formula1.strip('"').split(",")[0]
+        # 일시/생년월일 예시는 12/8자리 숫자여야 number_format 로 형식대로 표시됨.
+        # (문자열이면 엑셀이 시각·날짜로 파싱해 'AM' 등 로케일 형식으로 잘못 나온다.)
+        if example not in (None, "") and isinstance(marker, str):
+            if marker.startswith(DT_PREFIX):
+                example = 202606150930
+            elif marker.startswith(DOB_PREFIX):
+                example = 19700515
         if example not in (None, ""):
             exc = ws.cell(row=3, column=col, value=example)
             exc.font = Font(italic=True, color="A6A6A6", size=9)
@@ -1342,9 +1738,11 @@ def apply_field_notes(ws, colmap):
 
 def _write_header(ws, col, label, name_text):
     """1행=라벨, 2행=필드명(또는 그룹마커) 헤더 작성."""
-    c1 = ws.cell(row=1, column=col, value=label)
+    # 라벨에 수동 줄바꿈 지정이 있으면 그 텍스트를 1행에 쓴다(2행 필드명은 불변).
+    disp = HEADER_WRAP.get(ws.title, {}).get(label, label)
+    c1 = ws.cell(row=1, column=col, value=disp)
     c1.fill = HEADER_FILL
-    c1.font = WHITE_BOLD
+    c1.font = HEADER_FONT
     c1.alignment = CENTER
     c1.border = BORDER
     c2 = ws.cell(row=2, column=col, value=name_text)
@@ -1352,9 +1750,21 @@ def _write_header(ws, col, label, name_text):
     c2.font = NAME_FONT
     c2.alignment = CENTER
     c2.border = BORDER
-    # 한글/CJK 는 2칸 폭이라 시각적 길이로 계산(헤더는 wrap 되므로 상한을 둔다).
-    vis = sum(2 if ord(ch) >= 0x1100 else 1 for ch in str(label))
-    ws.column_dimensions[get_column_letter(col)].width = max(12, min(32, round(vis * 0.7) + 3))
+    # 폭: 명시적 override(HEADER_WIDTH) = KOCARC_.xlsx 실제 저장값 우선.
+    wmap = HEADER_WIDTH.get(ws.title, {})
+    if label in wmap:
+        col_width = wmap[label]
+    elif "\n" in str(disp):
+        # 수동 줄바꿈 열: 지정한 곳에서만 끊기게 넉넉히(재차 자동 줄바꿈 방지).
+        vis = max(sum(2 if ord(ch) >= 0x1100 else 1 for ch in line)
+                  for line in str(disp).split("\n"))
+        col_width = vis + 2
+    else:
+        # 파일이 너비를 지정하지 않은 열 → 템플릿도 기본 너비 유지(엑셀 기본값).
+        col_width = None
+    if col_width is not None:
+        ws.column_dimensions[get_column_letter(col)].width = col_width
+    # 헤더 행높이는 고정하지 않음 → 엑셀이 줄바꿈(\n)·자동줄바꿈에 맞춰 자동으로 맞춤.
 
 
 def write_field_header(ws, col, f, label=None):
@@ -1362,6 +1772,22 @@ def write_field_header(ws, col, f, label=None):
     if label is None:
         label = display_label(f)
     _write_header(ws, col, label, f["name"])
+
+
+def apply_width_ranges(ws):
+    """HEADER_WIDTH_RANGE: 두 라벨 사이 컬럼 너비 일괄 지정(개별 HEADER_WIDTH 는 건너뜀)."""
+    ranges = HEADER_WIDTH_RANGE.get(ws.title)
+    if not ranges:
+        return
+    label2col = {ws.cell(row=1, column=c).value: c for c in range(1, ws.max_column + 1)}
+    skip = HEADER_WIDTH.get(ws.title, {})
+    for start_lbl, end_lbl, w in ranges:
+        i0, i1 = label2col.get(start_lbl), label2col.get(end_lbl)
+        if not i0 or not i1:
+            continue
+        for ci in range(min(i0, i1), max(i0, i1) + 1):
+            if ws.cell(row=1, column=ci).value not in skip:
+                ws.column_dimensions[get_column_letter(ci)].width = w
 
 
 def add_key_columns(ws, label_text):
@@ -1375,7 +1801,7 @@ def add_key_columns(ws, label_text):
     c2.font = NAME_FONT
     c2.alignment = CENTER
     c2.border = BORDER
-    ws.column_dimensions["A"].width = 10
+    ws.column_dimensions["A"].width = 6.3
 
 
 def build_area_sheet(wb, area, sheet_title, n_rows=30, list_ctx=None,
@@ -1408,7 +1834,7 @@ def build_codebook(wb, schema):
     for j, h in enumerate(heads, start=1):
         c = ws.cell(row=1, column=j, value=h)
         c.fill = HEADER_FILL
-        c.font = WHITE_BOLD
+        c.font = HEADER_FONT
         c.alignment = CENTER
         c.border = BORDER
     widths = [14, 34, 20, 10, 70]
@@ -1510,6 +1936,12 @@ def build(out_path=None, schema_path=None, log=print):
     areas = {a["key"]: a for a in schema["areas"]}
 
     wb = Workbook()
+    # 기본 폰트를 KOCARC_.xlsx와 동일한 맑은 고딕 11로. 열 너비 단위는 기본 폰트의
+    # 숫자 폭(MDW) 기준이라, 폰트가 다르면 같은 저장값도 화면 폭이 달라짐.
+    # 엑셀은 MDW 계산에 fontId=0을 쓰므로 Normal 스타일과 _fonts[0]을 함께 교체.
+    default_font = Font(name="맑은 고딕", size=11)
+    wb._named_styles["Normal"].font = default_font
+    wb._fonts[0] = default_font
     wb.remove(wb.active)  # 기본 시트 제거
 
     build_usage(wb)
@@ -1546,6 +1978,10 @@ def build(out_path=None, schema_path=None, log=print):
         if unmatched:
             log(f"⚠ 메모 미매칭 필드명 {len(unmatched)}개(오타/제외항목?): {unmatched}")
 
+    for ws in wb.worksheets:
+        apply_width_ranges(ws)
+        if ws.title in TAB_COLOR:
+            ws.sheet_properties.tabColor = TAB_COLOR[ws.title]
     wb.save(out_path)
     log(f"엑셀 양식 저장: {out_path}")
     total = pa_count + sum(counts.values())
